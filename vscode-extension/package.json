@@ -1,0 +1,116 @@
+{
+  "name": "densify-context",
+  "displayName": "Densify Context — Prompt Optimizer",
+  "description": "Optimize LLM prompts in your editor. Compresses verbose prompts, saves tokens and money — 100% local, no data ever leaves your machine.",
+  "version": "1.0.0",
+  "publisher": "densify",
+  "license": "MIT",
+  "engines": {
+    "vscode": "^1.80.0"
+  },
+  "categories": [
+    "Other",
+    "Formatters"
+  ],
+  "keywords": [
+    "prompt",
+    "llm",
+    "chatgpt",
+    "claude",
+    "optimizer",
+    "token",
+    "compression",
+    "ai"
+  ],
+  "icon": "icons/icon128.png",
+  "activationEvents": [
+    "onStartupFinished"
+  ],
+  "main": "./extension.js",
+  "contributes": {
+    "commands": [
+      {
+        "command": "densify.optimizePrompt",
+        "title": "Densify: Optimize Prompt"
+      },
+      {
+        "command": "densify.optimizeAndReplace",
+        "title": "Densify: Optimize & Replace"
+      },
+      {
+        "command": "densify.showSuggestions",
+        "title": "Densify: Show Suggestions"
+      },
+      {
+        "command": "densify.countTokens",
+        "title": "Densify: Count Tokens"
+      }
+    ],
+    "menus": {
+      "editor/context": [
+        {
+          "command": "densify.optimizePrompt",
+          "group": "densify@1",
+          "when": "editorHasSelection"
+        },
+        {
+          "command": "densify.optimizeAndReplace",
+          "group": "densify@2",
+          "when": "editorHasSelection"
+        },
+        {
+          "command": "densify.showSuggestions",
+          "group": "densify@3",
+          "when": "editorHasSelection"
+        }
+      ]
+    },
+    "keybindings": [
+      {
+        "command": "densify.optimizePrompt",
+        "key": "ctrl+shift+d",
+        "mac": "cmd+shift+d",
+        "when": "editorTextFocus && editorHasSelection"
+      }
+    ],
+    "configuration": {
+      "title": "Densify Context",
+      "properties": {
+        "densify.model": {
+          "type": "string",
+          "default": "gpt-4o",
+          "enum": [
+            "gpt-4o",
+            "gpt-4o-mini",
+            "gpt-4-turbo",
+            "gpt-4",
+            "gpt-3.5-turbo",
+            "claude-4-opus",
+            "claude-4-sonnet",
+            "claude-3.5-sonnet",
+            "claude-3-opus",
+            "claude-3-haiku",
+            "gemini-2.5-pro",
+            "gemini-1.5-pro"
+          ],
+          "description": "LLM model for cost estimation."
+        },
+        "densify.removeFiller": {
+          "type": "boolean",
+          "default": true,
+          "description": "Remove filler words (basically, actually, just, etc.)."
+        },
+        "densify.removeCeremony": {
+          "type": "boolean",
+          "default": true,
+          "description": "Remove greetings, closings, and politeness phrases."
+        },
+        "densify.showStatusBar": {
+          "type": "boolean",
+          "default": true,
+          "description": "Show token count in the status bar."
+        }
+      }
+    }
+  }
+}

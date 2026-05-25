@@ -1,0 +1,125 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Densify Context</title>
+  <link rel="stylesheet" href="popup.css">
+</head>
+<body>
+
+  <!-- Header -->
+  <div class="header">
+    <div class="header-icon">⚡</div>
+    <div class="header-text">
+      <h1>Densify Context</h1>
+      <p>Compress prompts. Save tokens. Save money.</p>
+    </div>
+  </div>
+
+  <!-- Main Content -->
+  <div class="content">
+
+    <!-- Model Selector -->
+    <div class="model-selector">
+      <label for="model-select">Cost model:</label>
+      <select id="model-select">
+        <option value="gpt-4o" selected>GPT-4o</option>
+        <option value="gpt-4o-mini">GPT-4o Mini</option>
+        <option value="gpt-4-turbo">GPT-4 Turbo</option>
+        <option value="gpt-4">GPT-4</option>
+        <option value="gpt-3.5-turbo">GPT-3.5 Turbo</option>
+        <option value="claude-4-opus">Claude 4 Opus</option>
+        <option value="claude-4-sonnet">Claude 4 Sonnet</option>
+        <option value="claude-3.5-sonnet">Claude 3.5 Sonnet</option>
+        <option value="claude-3-opus">Claude 3 Opus</option>
+        <option value="claude-3-haiku">Claude 3 Haiku</option>
+        <option value="gemini-2.5-pro">Gemini 2.5 Pro</option>
+        <option value="gemini-1.5-pro">Gemini 1.5 Pro</option>
+      </select>
+    </div>
+
+    <!-- Input -->
+    <div class="input-group">
+      <label class="input-label" for="input-text">Your Prompt</label>
+      <textarea
+        id="input-text"
+        class="input-textarea"
+        placeholder="Paste your verbose prompt here…"
+        spellcheck="false"
+      ></textarea>
+    </div>
+
+    <!-- Optimize Button -->
+    <button id="optimize-btn" class="optimize-btn" disabled>
+      <span class="spinner"></span>
+      <span class="btn-label">⚡ Optimize Prompt</span>
+    </button>
+
+    <!-- Stats -->
+    <div id="stats-bar" class="stats-bar">
+      <div class="stats-row">
+        <div class="stat-item">
+          <span id="stat-tokens" class="stat-value tokens">0</span>
+          <span class="stat-label">Tokens Saved</span>
+        </div>
+        <div class="stat-divider"></div>
+        <div class="stat-item">
+          <span id="stat-percent" class="stat-value percent">0%</span>
+          <span class="stat-label">Compression</span>
+        </div>
+        <div class="stat-divider"></div>
+        <div class="stat-item">
+          <span id="stat-cost" class="stat-value cost">$0</span>
+          <span class="stat-label">Saved</span>
+        </div>
+      </div>
+    </div>
+
+    <!-- Output -->
+    <div id="output-group" class="output-group">
+      <div class="output-header">
+        <label class="input-label">Optimized Prompt</label>
+        <span id="confidence-badge" class="confidence-badge high">●  0.95</span>
+      </div>
+      <textarea
+        id="output-text"
+        class="output-textarea"
+        readonly
+        spellcheck="false"
+      ></textarea>
+    </div>
+
+    <!-- Action Buttons -->
+    <div id="action-buttons" class="action-buttons">
+      <button id="btn-copy" class="btn-secondary btn-copy">
+        📋 Copy
+      </button>
+      <button id="btn-replace" class="btn-secondary btn-replace">
+        🔄 Replace on Page
+      </button>
+      <button id="btn-clear" class="btn-secondary">
+        ✕ Clear
+      </button>
+    </div>
+
+    <!-- Changes List -->
+    <div id="changes-section" class="changes-section">
+      <button id="changes-toggle" class="changes-toggle">
+        <span><span id="changes-count">0</span> changes applied</span>
+        <span class="arrow">▼</span>
+      </button>
+      <div id="changes-list" class="changes-list"></div>
+    </div>
+
+  </div>
+
+  <!-- Footer -->
+  <div class="footer">
+    <p>🔒 100% local — no data leaves your browser</p>
+  </div>
+
+  <script src="../lib/densify-engine.js"></script>
+  <script src="popup.js"></script>
+</body>
+</html>

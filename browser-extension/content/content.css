@@ -1,0 +1,234 @@
+/* ─────────────────────────────────────────────────────────
+   Densify Context — Content Script Styles
+   Injected into LLM chat pages. All classes prefixed with
+   `dcx-` to avoid collisions with host page styles.
+   ───────────────────────────────────────────────────────── */
+
+/* ── Floating Optimize Button ──────────────────────────── */
+.dcx-float-btn {
+  position: absolute;
+  z-index: 2147483646;
+  width: 32px;
+  height: 32px;
+  border-radius: 8px;
+  border: none;
+  background: linear-gradient(135deg, #6C5CE7, #A66BFF);
+  color: #fff;
+  font-size: 16px;
+  cursor: pointer;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  box-shadow: 0 2px 12px rgba(108, 92, 231, 0.4);
+  opacity: 0;
+  transform: scale(0.8);
+  transition: opacity 0.25s cubic-bezier(0.16, 1, 0.3, 1),
+              transform 0.25s cubic-bezier(0.16, 1, 0.3, 1);
+  pointer-events: none;
+  font-family: -apple-system, BlinkMacSystemFont, sans-serif;
+  line-height: 1;
+  padding: 0;
+}
+
+.dcx-float-btn.dcx-visible {
+  opacity: 1;
+  transform: scale(1);
+  pointer-events: auto;
+}
+
+.dcx-float-btn:hover {
+  transform: scale(1.1);
+  box-shadow: 0 4px 20px rgba(108, 92, 231, 0.5);
+}
+
+.dcx-float-btn:active {
+  transform: scale(0.95);
+}
+
+.dcx-float-btn.dcx-loading {
+  pointer-events: none;
+  animation: dcx-pulse 0.8s ease-in-out infinite;
+}
+
+@keyframes dcx-pulse {
+  0%, 100% { opacity: 1; }
+  50% { opacity: 0.5; }
+}
+
+/* ── Overlay Panel ─────────────────────────────────────── */
+.dcx-overlay {
+  position: fixed;
+  z-index: 2147483647;
+  width: 380px;
+  max-height: 480px;
+  border-radius: 16px;
+  background: #14171e;
+  border: 1px solid rgba(255, 255, 255, 0.08);
+  box-shadow: 0 16px 64px rgba(0, 0, 0, 0.5),
+              0 0 0 1px rgba(255, 255, 255, 0.04);
+  font-family: 'Inter', -apple-system, BlinkMacSystemFont, sans-serif;
+  color: #F0F0F5;
+  overflow: hidden;
+  opacity: 0;
+  transform: translateY(8px) scale(0.96);
+  transition: opacity 0.3s cubic-bezier(0.16, 1, 0.3, 1),
+              transform 0.3s cubic-bezier(0.16, 1, 0.3, 1);
+  pointer-events: none;
+}
+
+.dcx-overlay.dcx-visible {
+  opacity: 1;
+  transform: translateY(0) scale(1);
+  pointer-events: auto;
+}
+
+/* Overlay Header */
+.dcx-overlay-header {
+  padding: 14px 16px;
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  border-bottom: 1px solid rgba(255, 255, 255, 0.06);
+  background: rgba(13, 15, 20, 0.6);
+}
+
+.dcx-overlay-title {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  font-size: 13px;
+  font-weight: 600;
+}
+
+.dcx-overlay-title .dcx-icon {
+  width: 24px;
+  height: 24px;
+  border-radius: 6px;
+  background: linear-gradient(135deg, #6C5CE7, #00CEFF);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  font-size: 12px;
+}
+
+.dcx-close-btn {
+  width: 28px;
+  height: 28px;
+  border-radius: 6px;
+  border: none;
+  background: rgba(255, 255, 255, 0.06);
+  color: #9BA1B0;
+  font-size: 14px;
+  cursor: pointer;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  transition: all 0.2s;
+}
+
+.dcx-close-btn:hover {
+  background: rgba(255, 107, 107, 0.15);
+  color: #FF6B6B;
+}
+
+/* Stats Row */
+.dcx-stats {
+  display: flex;
+  padding: 12px 16px;
+  gap: 0;
+  border-bottom: 1px solid rgba(255, 255, 255, 0.06);
+}
+
+.dcx-stat {
+  flex: 1;
+  text-align: center;
+}
+
+.dcx-stat-value {
+  font-size: 16px;
+  font-weight: 700;
+}
+
+.dcx-stat-value.dcx-tokens { color: #00CEFF; }
+.dcx-stat-value.dcx-percent { color: #00D68F; }
+.dcx-stat-value.dcx-cost { color: #FFB347; }
+
+.dcx-stat-label {
+  font-size: 9px;
+  color: #5A6072;
+  text-transform: uppercase;
+  letter-spacing: 0.6px;
+  margin-top: 2px;
+}
+
+/* Optimized Text */
+.dcx-optimized-text {
+  padding: 14px 16px;
+  font-size: 13px;
+  line-height: 1.6;
+  color: #F0F0F5;
+  max-height: 200px;
+  overflow-y: auto;
+  white-space: pre-wrap;
+  word-break: break-word;
+}
+
+.dcx-optimized-text::-webkit-scrollbar {
+  width: 4px;
+}
+
+.dcx-optimized-text::-webkit-scrollbar-thumb {
+  background: #5A6072;
+  border-radius: 2px;
+}
+
+/* Action Buttons */
+.dcx-actions {
+  display: flex;
+  gap: 8px;
+  padding: 12px 16px;
+  border-top: 1px solid rgba(255, 255, 255, 0.06);
+}
+
+.dcx-action-btn {
+  flex: 1;
+  padding: 9px 12px;
+  border-radius: 8px;
+  border: none;
+  font-family: inherit;
+  font-size: 12px;
+  font-weight: 500;
+  cursor: pointer;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  gap: 5px;
+  transition: all 0.2s cubic-bezier(0.16, 1, 0.3, 1);
+}
+
+.dcx-action-btn.dcx-primary {
+  background: linear-gradient(135deg, #6C5CE7, #A66BFF);
+  color: #fff;
+}
+
+.dcx-action-btn.dcx-primary:hover {
+  box-shadow: 0 4px 16px rgba(108, 92, 231, 0.35);
+  transform: translateY(-1px);
+}
+
+.dcx-action-btn.dcx-secondary {
+  background: rgba(255, 255, 255, 0.06);
+  color: #9BA1B0;
+  border: 1px solid rgba(255, 255, 255, 0.08);
+}
+
+.dcx-action-btn.dcx-secondary:hover {
+  background: rgba(255, 255, 255, 0.10);
+  color: #F0F0F5;
+}
+
+.dcx-action-btn.dcx-success {
+  background: rgba(0, 214, 143, 0.12);
+  color: #00D68F;
+  border: 1px solid rgba(0, 214, 143, 0.2);
+}
