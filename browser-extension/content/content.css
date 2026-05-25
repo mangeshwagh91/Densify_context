@@ -1,234 +1,294 @@
 /* ─────────────────────────────────────────────────────────
-   Densify Context — Content Script Styles
-   Injected into LLM chat pages. All classes prefixed with
-   `dcx-` to avoid collisions with host page styles.
+   Densify Context — Content Script Styles v3
+   All classes are prefixed dcx- to avoid collisions.
    ───────────────────────────────────────────────────────── */
 
-/* ── Floating Optimize Button ──────────────────────────── */
+/* ── Mirror overlay (transparent, highlights only) ──────── */
+.dcx-mirror {
+  position: fixed;
+  pointer-events: none;
+  background: transparent !important;
+  color: transparent !important;
+  border-color: transparent !important;
+  overflow: hidden;
+  z-index: 2147483643;
+  -webkit-font-smoothing: antialiased;
+}
+
+/* ── Inline highlight marks ──────────────────────────────── */
+.dcx-hl {
+  position: relative;
+  display: inline;
+  color: transparent;
+  border-radius: 2px;
+  pointer-events: auto !important;
+  cursor: pointer !important;
+  /* Animated bottom border (underline) */
+  background-image: linear-gradient(currentColor, currentColor);
+  background-repeat: no-repeat;
+  background-position: 0 100%;
+  background-size: 100% 2px;
+  transition: background-size 0.2s;
+}
+/* Per-type colour for the underline */
+.dcx-hl-filler     { color: #f59e0b; }
+.dcx-hl-ceremony   { color: #3b82f6; }
+.dcx-hl-phrase     { color: #a855f7; }
+.dcx-hl-redundant  { color: #10b981; }
+.dcx-hl-structural { color: #6b7280; }
+
+/* ── Float badge button ───────────────────────────────────── */
 .dcx-float-btn {
-  position: absolute;
+  position: fixed;
   z-index: 2147483646;
-  width: 32px;
-  height: 32px;
-  border-radius: 8px;
+  display: inline-flex;
+  align-items: center;
+  gap: 3px;
+  padding: 0 7px 0 6px;
+  height: 26px;
+  border-radius: 13px;
   border: none;
   background: linear-gradient(135deg, #6C5CE7, #A66BFF);
   color: #fff;
-  font-size: 16px;
+  font-size: 13px;
+  font-family: -apple-system, BlinkMacSystemFont, 'Inter', sans-serif;
+  font-weight: 600;
   cursor: pointer;
-  display: flex;
-  align-items: center;
-  justify-content: center;
-  box-shadow: 0 2px 12px rgba(108, 92, 231, 0.4);
+  box-shadow: 0 2px 10px rgba(108,92,231,0.45);
+  /* Hidden by default */
   opacity: 0;
-  transform: scale(0.8);
-  transition: opacity 0.25s cubic-bezier(0.16, 1, 0.3, 1),
-              transform 0.25s cubic-bezier(0.16, 1, 0.3, 1);
+  visibility: hidden;
+  transform: scale(0.8) translateY(4px);
+  transition: opacity  0.2s cubic-bezier(0.16,1,0.3,1),
+              visibility 0s linear 0.2s,
+              transform 0.2s cubic-bezier(0.16,1,0.3,1);
   pointer-events: none;
-  font-family: -apple-system, BlinkMacSystemFont, sans-serif;
-  line-height: 1;
-  padding: 0;
 }
 
 .dcx-float-btn.dcx-visible {
   opacity: 1;
-  transform: scale(1);
+  visibility: visible;
+  transform: scale(1) translateY(0);
   pointer-events: auto;
+  transition: opacity  0.2s cubic-bezier(0.16,1,0.3,1),
+              visibility 0s linear 0s,
+              transform 0.2s cubic-bezier(0.16,1,0.3,1);
 }
 
 .dcx-float-btn:hover {
-  transform: scale(1.1);
-  box-shadow: 0 4px 20px rgba(108, 92, 231, 0.5);
+  box-shadow: 0 4px 18px rgba(108,92,231,0.6);
+  transform: scale(1.06) translateY(0);
 }
 
-.dcx-float-btn:active {
-  transform: scale(0.95);
+.dcx-float-btn:active { transform: scale(0.97); }
+
+.dcx-fi { font-size: 13px; line-height: 1; }
+
+.dcx-fc {
+  background: #fff;
+  color: #6C5CE7;
+  font-size: 9px;
+  font-weight: 800;
+  border-radius: 8px;
+  padding: 1px 5px;
+  min-width: 14px;
+  text-align: center;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  line-height: 1.5;
 }
 
-.dcx-float-btn.dcx-loading {
-  pointer-events: none;
-  animation: dcx-pulse 0.8s ease-in-out infinite;
-}
-
-@keyframes dcx-pulse {
-  0%, 100% { opacity: 1; }
-  50% { opacity: 0.5; }
-}
-
-/* ── Overlay Panel ─────────────────────────────────────── */
-.dcx-overlay {
+/* ── Suggestion popup card ───────────────────────────────── */
+.dcx-suggestion-popup {
   position: fixed;
   z-index: 2147483647;
-  width: 380px;
-  max-height: 480px;
-  border-radius: 16px;
-  background: #14171e;
-  border: 1px solid rgba(255, 255, 255, 0.08);
-  box-shadow: 0 16px 64px rgba(0, 0, 0, 0.5),
-              0 0 0 1px rgba(255, 255, 255, 0.04);
+  width: 320px;
+  border-radius: 14px;
+  background: #16181f;
+  border: 1px solid rgba(255,255,255,0.08);
+  box-shadow: 0 12px 40px rgba(0,0,0,0.6),
+              0 2px 8px rgba(0,0,0,0.4);
   font-family: 'Inter', -apple-system, BlinkMacSystemFont, sans-serif;
-  color: #F0F0F5;
+  font-size: 13px;
+  color: #dde1ea;
   overflow: hidden;
+  /* Invisible by default */
   opacity: 0;
+  visibility: hidden;
   transform: translateY(8px) scale(0.96);
-  transition: opacity 0.3s cubic-bezier(0.16, 1, 0.3, 1),
-              transform 0.3s cubic-bezier(0.16, 1, 0.3, 1);
-  pointer-events: none;
+  transition: opacity    0.2s cubic-bezier(0.16,1,0.3,1),
+              visibility  0s linear 0.2s,
+              transform  0.2s cubic-bezier(0.16,1,0.3,1);
 }
 
-.dcx-overlay.dcx-visible {
+.dcx-suggestion-popup.dcx-sp-on {
   opacity: 1;
+  visibility: visible;
   transform: translateY(0) scale(1);
-  pointer-events: auto;
+  transition: opacity    0.2s cubic-bezier(0.16,1,0.3,1),
+              visibility  0s linear 0s,
+              transform  0.2s cubic-bezier(0.16,1,0.3,1);
 }
 
-/* Overlay Header */
-.dcx-overlay-header {
-  padding: 14px 16px;
+/* Header */
+.dcx-sp-hd {
   display: flex;
   align-items: center;
   justify-content: space-between;
-  border-bottom: 1px solid rgba(255, 255, 255, 0.06);
-  background: rgba(13, 15, 20, 0.6);
+  padding: 12px 14px 10px;
+  border-bottom: 1px solid rgba(255,255,255,0.06);
+  background: rgba(255,255,255,0.02);
 }
 
-.dcx-overlay-title {
+.dcx-sp-ttl {
   display: flex;
   align-items: center;
-  gap: 8px;
-  font-size: 13px;
-  font-weight: 600;
-}
-
-.dcx-overlay-title .dcx-icon {
-  width: 24px;
-  height: 24px;
-  border-radius: 6px;
-  background: linear-gradient(135deg, #6C5CE7, #00CEFF);
-  display: flex;
-  align-items: center;
-  justify-content: center;
-  font-size: 12px;
-}
-
-.dcx-close-btn {
-  width: 28px;
-  height: 28px;
-  border-radius: 6px;
-  border: none;
-  background: rgba(255, 255, 255, 0.06);
-  color: #9BA1B0;
-  font-size: 14px;
-  cursor: pointer;
-  display: flex;
-  align-items: center;
-  justify-content: center;
-  transition: all 0.2s;
-}
-
-.dcx-close-btn:hover {
-  background: rgba(255, 107, 107, 0.15);
-  color: #FF6B6B;
-}
-
-/* Stats Row */
-.dcx-stats {
-  display: flex;
-  padding: 12px 16px;
-  gap: 0;
-  border-bottom: 1px solid rgba(255, 255, 255, 0.06);
-}
-
-.dcx-stat {
-  flex: 1;
-  text-align: center;
-}
-
-.dcx-stat-value {
-  font-size: 16px;
+  gap: 7px;
   font-weight: 700;
-}
-
-.dcx-stat-value.dcx-tokens { color: #00CEFF; }
-.dcx-stat-value.dcx-percent { color: #00D68F; }
-.dcx-stat-value.dcx-cost { color: #FFB347; }
-
-.dcx-stat-label {
-  font-size: 9px;
-  color: #5A6072;
-  text-transform: uppercase;
-  letter-spacing: 0.6px;
-  margin-top: 2px;
-}
-
-/* Optimized Text */
-.dcx-optimized-text {
-  padding: 14px 16px;
   font-size: 13px;
-  line-height: 1.6;
-  color: #F0F0F5;
-  max-height: 200px;
-  overflow-y: auto;
-  white-space: pre-wrap;
-  word-break: break-word;
+  color: #f0f2f7;
 }
 
-.dcx-optimized-text::-webkit-scrollbar {
-  width: 4px;
+.dcx-sp-ic {
+  width: 22px; height: 22px;
+  border-radius: 6px;
+  background: linear-gradient(135deg,#6C5CE7,#a66bff);
+  display: inline-flex;
+  align-items: center; justify-content: center;
+  font-size: 11px; flex-shrink: 0;
 }
 
-.dcx-optimized-text::-webkit-scrollbar-thumb {
-  background: #5A6072;
-  border-radius: 2px;
+.dcx-sp-x {
+  width: 26px; height: 26px;
+  border-radius: 6px; border: none;
+  background: rgba(255,255,255,0.05);
+  color: #6b7280; font-size: 12px;
+  cursor: pointer;
+  display: flex; align-items: center; justify-content: center;
+  transition: background 0.15s, color 0.15s;
+  font-family: inherit;
+}
+.dcx-sp-x:hover { background: rgba(255,80,80,0.15); color: #ff6b6b; }
+
+/* Type badge */
+.dcx-sp-badge {
+  display: inline-flex;
+  align-items: center;
+  margin: 10px 14px 0;
+  padding: 3px 9px;
+  border-radius: 20px;
+  font-size: 10px; font-weight: 700;
+  letter-spacing: 0.06em;
+  text-transform: uppercase;
+}
+.dcx-badge-filler     { background: rgba(245,158,11,0.15); color: #f59e0b; }
+.dcx-badge-ceremony   { background: rgba(59,130,246,0.15);  color: #60a5fa; }
+.dcx-badge-phrase     { background: rgba(168,85,247,0.15);  color: #c084fc; }
+.dcx-badge-redundant  { background: rgba(16,185,129,0.15);  color: #34d399; }
+.dcx-badge-structural { background: rgba(107,114,128,0.15); color: #9ca3af; }
+
+/* Body */
+.dcx-sp-body { padding: 10px 14px 0; }
+
+.dcx-change {
+  display: flex;
+  align-items: center;
+  flex-wrap: wrap;
+  gap: 6px;
+  margin-bottom: 8px;
+  font-size: 14px;
+  font-weight: 500;
 }
 
-/* Action Buttons */
-.dcx-actions {
+.dcx-orig {
+  color: #f87171;
+  text-decoration: line-through;
+  text-decoration-color: rgba(248,113,113,0.45);
+}
+.dcx-arr  { color: #4b5563; font-size: 12px; }
+.dcx-rep  { color: #4ade80; font-weight: 600; }
+.dcx-rem  { color: #f59e0b; font-style: normal; font-size: 12px; }
+
+.dcx-expl {
+  font-size: 11.5px;
+  color: #6b7280;
+  line-height: 1.55;
+}
+
+.dcx-tok {
+  display: inline-flex;
+  margin-top: 8px;
+  padding: 2px 8px;
+  background: rgba(16,185,129,0.1);
+  border: 1px solid rgba(16,185,129,0.2);
+  border-radius: 10px;
+  color: #34d399;
+  font-size: 10.5px; font-weight: 700;
+}
+
+/* Navigation (1 of N) */
+.dcx-sp-nav {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  gap: 10px;
+  padding: 8px 14px 0;
+  font-size: 11px;
+  color: #6b7280;
+}
+
+.dcx-nav-btn {
+  background: rgba(255,255,255,0.06);
+  border: none;
+  color: #9ba1b0;
+  width: 24px; height: 24px;
+  border-radius: 6px;
+  cursor: pointer;
+  font-size: 14px; line-height: 1;
+  display: flex; align-items: center; justify-content: center;
+  transition: background 0.15s, color 0.15s;
+  font-family: inherit;
+}
+.dcx-nav-btn:not([disabled]):hover { background: rgba(255,255,255,0.12); color: #f0f2f7; }
+.dcx-nav-btn[disabled] { opacity: 0.3; cursor: default; }
+
+/* Action buttons */
+.dcx-sp-btns {
   display: flex;
   gap: 8px;
-  padding: 12px 16px;
-  border-top: 1px solid rgba(255, 255, 255, 0.06);
+  padding: 12px 14px 14px;
 }
 
-.dcx-action-btn {
+.dcx-sp-accept,
+.dcx-sp-dismiss {
   flex: 1;
-  padding: 9px 12px;
-  border-radius: 8px;
+  padding: 9px 14px;
+  border-radius: 9px;
   border: none;
   font-family: inherit;
-  font-size: 12px;
-  font-weight: 500;
+  font-size: 13px; font-weight: 600;
   cursor: pointer;
-  display: flex;
-  align-items: center;
-  justify-content: center;
-  gap: 5px;
-  transition: all 0.2s cubic-bezier(0.16, 1, 0.3, 1);
+  transition: all 0.15s cubic-bezier(0.16,1,0.3,1);
 }
 
-.dcx-action-btn.dcx-primary {
-  background: linear-gradient(135deg, #6C5CE7, #A66BFF);
+.dcx-sp-accept {
+  background: linear-gradient(135deg,#6C5CE7,#a66bff);
   color: #fff;
+  box-shadow: 0 2px 8px rgba(108,92,231,0.3);
 }
-
-.dcx-action-btn.dcx-primary:hover {
-  box-shadow: 0 4px 16px rgba(108, 92, 231, 0.35);
+.dcx-sp-accept:hover {
+  box-shadow: 0 4px 16px rgba(108,92,231,0.5);
   transform: translateY(-1px);
 }
+.dcx-sp-accept:active { transform: translateY(0); }
 
-.dcx-action-btn.dcx-secondary {
-  background: rgba(255, 255, 255, 0.06);
-  color: #9BA1B0;
-  border: 1px solid rgba(255, 255, 255, 0.08);
+.dcx-sp-dismiss {
+  background: rgba(255,255,255,0.06);
+  color: #9ba1b0;
+  border: 1px solid rgba(255,255,255,0.08);
 }
-
-.dcx-action-btn.dcx-secondary:hover {
-  background: rgba(255, 255, 255, 0.10);
-  color: #F0F0F5;
-}
-
-.dcx-action-btn.dcx-success {
-  background: rgba(0, 214, 143, 0.12);
-  color: #00D68F;
-  border: 1px solid rgba(0, 214, 143, 0.2);
+.dcx-sp-dismiss:hover {
+  background: rgba(255,255,255,0.10);
+  color: #e2e4ea;
 }
