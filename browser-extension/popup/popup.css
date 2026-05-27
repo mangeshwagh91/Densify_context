@@ -1,10 +1,12 @@
 /* ─────────────────────────────────────────────────────────
-   Densify Context — Popup Styles
+   Densify Context — Popup Styles v2
    Premium dark theme with glassmorphism, gradients,
    micro-animations, and modern typography.
+   New: token bar, lint tab, Fix All button, header badge.
    ───────────────────────────────────────────────────────── */
 
-@import url('https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&display=swap');
+/* Google Fonts @import removed: Chrome MV3 CSP blocks external stylesheets.
+   Using system font stack instead (see font-family declarations below). */
 
 /* ── CSS Custom Properties ─────────────────────────────── */
 :root {
@@ -56,7 +58,7 @@
 body {
   width: 420px;
   min-height: 520px;
-  font-family: 'Inter', -apple-system, BlinkMacSystemFont, sans-serif;
+  font-family: 'Inter', -apple-system, BlinkMacSystemFont, 'Segoe UI', system-ui, sans-serif;
   background: var(--bg-primary);
   color: var(--text-primary);
   overflow-x: hidden;
@@ -99,6 +101,8 @@ body {
   box-shadow: 0 4px 16px rgba(108, 92, 231, 0.3);
 }
 
+.header-text { flex: 1; }
+
 .header-text h1 {
   font-size: 15px;
   font-weight: 700;
@@ -113,6 +117,28 @@ body {
   font-size: 11px;
   color: var(--text-muted);
   margin-top: 1px;
+}
+
+/* Header badge — suggestion count */
+.header-badge {
+  min-width: 22px;
+  height: 22px;
+  border-radius: 11px;
+  background: var(--gradient-accent);
+  color: #fff;
+  font-size: 10px;
+  font-weight: 700;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  padding: 0 6px;
+  flex-shrink: 0;
+  animation: popIn 0.3s var(--ease-out-expo);
+}
+
+@keyframes popIn {
+  from { transform: scale(0.5); opacity: 0; }
+  to   { transform: scale(1);   opacity: 1; }
 }
 
 /* ── Main Content ──────────────────────────────────────── */
@@ -147,7 +173,7 @@ body {
   border: 1px solid var(--glass-border);
   background: var(--bg-surface);
   color: var(--text-primary);
-  font-family: 'Inter', sans-serif;
+  font-family: 'Inter', -apple-system, BlinkMacSystemFont, 'Segoe UI', system-ui, sans-serif;
   font-size: 13px;
   line-height: 1.6;
   resize: vertical;
@@ -173,7 +199,7 @@ body {
   border-radius: var(--radius-md);
   background: var(--gradient-accent);
   color: #fff;
-  font-family: 'Inter', sans-serif;
+  font-family: 'Inter', -apple-system, BlinkMacSystemFont, 'Segoe UI', system-ui, sans-serif;
   font-size: 14px;
   font-weight: 600;
   cursor: pointer;
@@ -314,7 +340,7 @@ body {
   border: 1px solid rgba(0, 214, 143, 0.2);
   background: rgba(0, 214, 143, 0.04);
   color: var(--text-primary);
-  font-family: 'Inter', sans-serif;
+  font-family: 'Inter', -apple-system, BlinkMacSystemFont, 'Segoe UI', system-ui, sans-serif;
   font-size: 13px;
   line-height: 1.6;
   resize: vertical;
@@ -329,7 +355,8 @@ body {
 /* ── Action Buttons ────────────────────────────────────── */
 .action-buttons {
   display: none;
-  gap: 8px;
+  gap: 6px;
+  flex-wrap: wrap;
 }
 
 .action-buttons.visible {
@@ -338,20 +365,22 @@ body {
 
 .btn-secondary {
   flex: 1;
-  padding: 10px 16px;
+  min-width: 60px;
+  padding: 10px 12px;
   border-radius: var(--radius-sm);
   border: 1px solid var(--glass-border);
   background: var(--bg-surface);
   color: var(--text-primary);
-  font-family: 'Inter', sans-serif;
-  font-size: 12px;
+  font-family: 'Inter', -apple-system, BlinkMacSystemFont, 'Segoe UI', system-ui, sans-serif;
+  font-size: 11px;
   font-weight: 500;
   cursor: pointer;
   display: flex;
   align-items: center;
   justify-content: center;
-  gap: 6px;
+  gap: 4px;
   transition: all 0.2s var(--ease-out-expo);
+  white-space: nowrap;
 }
 
 .btn-secondary:hover {
@@ -369,116 +398,7 @@ body {
   color: var(--success);
 }
 
-/* ── Changes List ──────────────────────────────────────── */
-.changes-section {
-  display: none;
-  flex-direction: column;
-  gap: 8px;
-  animation: slideUp 0.6s var(--ease-out-expo);
-}
-
-.changes-section.visible {
-  display: flex;
-}
-
-.changes-toggle {
-  display: flex;
-  align-items: center;
-  justify-content: space-between;
-  padding: 8px 12px;
-  border-radius: var(--radius-sm);
-  background: var(--bg-surface);
-  border: 1px solid var(--glass-border);
-  color: var(--text-secondary);
-  font-size: 12px;
-  font-weight: 500;
-  cursor: pointer;
-  transition: all 0.2s;
-}
-
-.changes-toggle:hover {
-  background: var(--bg-elevated);
-}
-
-.changes-toggle .arrow {
-  transition: transform 0.3s var(--ease-out-expo);
-}
-
-.changes-toggle.open .arrow {
-  transform: rotate(180deg);
-}
-
-.changes-list {
-  display: none;
-  flex-direction: column;
-  gap: 6px;
-  max-height: 200px;
-  overflow-y: auto;
-  padding-right: 4px;
-}
-
-.changes-list.open {
-  display: flex;
-}
-
-.changes-list::-webkit-scrollbar {
-  width: 4px;
-}
-
-.changes-list::-webkit-scrollbar-track {
-  background: transparent;
-}
-
-.changes-list::-webkit-scrollbar-thumb {
-  background: var(--text-muted);
-  border-radius: 2px;
-}
-
-.change-item {
-  padding: 10px 12px;
-  border-radius: var(--radius-sm);
-  background: var(--bg-surface);
-  border: 1px solid var(--glass-border);
-  font-size: 12px;
-  line-height: 1.5;
-}
-
-.change-item .change-type {
-  display: inline-block;
-  padding: 1px 6px;
-  border-radius: 4px;
-  font-size: 10px;
-  font-weight: 600;
-  text-transform: uppercase;
-  letter-spacing: 0.5px;
-  margin-bottom: 4px;
-}
-
-.change-type.phrase    { background: rgba(108, 92, 231, 0.15); color: var(--accent-mid); }
-.change-type.filler    { background: rgba(255, 107, 107, 0.15); color: var(--error); }
-.change-type.redundant { background: rgba(255, 179, 71, 0.15); color: var(--warning); }
-.change-type.ceremony  { background: rgba(0, 206, 255, 0.15); color: var(--info); }
-.change-type.whitespace { background: rgba(90, 96, 114, 0.15); color: var(--text-muted); }
-
-.change-detail {
-  color: var(--text-secondary);
-}
-
-.change-detail .original {
-  text-decoration: line-through;
-  color: var(--error);
-  opacity: 0.8;
-}
-
-.change-detail .arrow-icon {
-  margin: 0 4px;
-  color: var(--text-muted);
-}
-
-.change-detail .replacement {
-  color: var(--success);
-  font-weight: 500;
-}
+/* ── Changes & Lint sections are now in the token-bar block below ── */
 
 /* ── Model Selector ────────────────────────────────────── */
 .model-selector {
@@ -501,7 +421,7 @@ body {
   border: 1px solid var(--glass-border);
   background: var(--bg-surface);
   color: var(--text-primary);
-  font-family: 'Inter', sans-serif;
+  font-family: 'Inter', -apple-system, BlinkMacSystemFont, 'Segoe UI', system-ui, sans-serif;
   font-size: 11px;
   outline: none;
   cursor: pointer;
@@ -572,7 +492,233 @@ body {
   color: var(--error);
 }
 
-/* ── Empty State ───────────────────────────────────────── */
+/* ── Empty State (legacy selector kept for safety) ─────── */
+.empty-state-old {
+  text-align: center;
+  padding: 24px 16px;
+  color: var(--text-muted);
+  font-size: 12px;
+  line-height: 1.6;
+}
+
+.empty-state-old .icon {
+  font-size: 32px;
+  margin-bottom: 8px;
+}
+
+/* ── Live Token Count + Token Bar ─────────────────────── */
+.token-bar-row {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  min-height: 16px;
+}
+
+.live-token-count {
+  font-size: 10px;
+  font-weight: 600;
+  color: var(--accent-mid);
+  white-space: nowrap;
+  letter-spacing: 0.3px;
+  transition: color 0.3s;
+  flex-shrink: 0;
+}
+
+.token-bar-wrap {
+  flex: 1;
+  height: 4px;
+  background: var(--bg-elevated);
+  border-radius: 2px;
+  overflow: hidden;
+}
+
+.token-bar {
+  height: 100%;
+  border-radius: 2px;
+  transition: width 0.4s var(--ease-out-expo), background-color 0.4s;
+}
+
+.token-bar--ok     { background: var(--success); }
+.token-bar--warn   { background: var(--warning); }
+.token-bar--danger { background: var(--error); }
+
+/* ── Results Tabs (Changes / Diagnostics) ──────────────── */
+.results-tabs {
+  display: flex;
+  gap: 2px;
+  padding: 2px;
+  background: var(--bg-surface);
+  border: 1px solid var(--glass-border);
+  border-radius: var(--radius-sm);
+  animation: slideUp 0.4s var(--ease-out-expo);
+}
+
+.tab-btn {
+  flex: 1;
+  padding: 7px 10px;
+  border-radius: calc(var(--radius-sm) - 2px);
+  border: none;
+  background: transparent;
+  color: var(--text-muted);
+  font-family: inherit;
+  font-size: 11px;
+  font-weight: 600;
+  cursor: pointer;
+  transition: background 0.2s, color 0.2s;
+}
+
+.tab-btn:hover {
+  background: var(--bg-elevated);
+  color: var(--text-secondary);
+}
+
+.tab-btn.tab-active {
+  background: var(--bg-elevated);
+  color: var(--text-primary);
+}
+
+.tab-btn span {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  background: rgba(255,255,255,0.1);
+  border-radius: 8px;
+  font-size: 9px;
+  font-weight: 700;
+  padding: 1px 5px;
+  margin-right: 3px;
+}
+
+/* ── Results Panels ────────────────────────────────────── */
+.results-panel {
+  max-height: 200px;
+  overflow-y: auto;
+  animation: slideUp 0.35s var(--ease-out-expo);
+}
+
+.results-panel::-webkit-scrollbar { width: 4px; }
+.results-panel::-webkit-scrollbar-track { background: transparent; }
+.results-panel::-webkit-scrollbar-thumb {
+  background: var(--text-muted);
+  border-radius: 2px;
+}
+
+/* Changes list */
+.changes-list {
+  display: flex;
+  flex-direction: column;
+  gap: 6px;
+  padding-right: 2px;
+}
+
+.change-item {
+  padding: 10px 12px;
+  border-radius: var(--radius-sm);
+  background: var(--bg-surface);
+  border: 1px solid var(--glass-border);
+  font-size: 12px;
+  line-height: 1.5;
+}
+
+.change-item .change-type {
+  display: inline-block;
+  padding: 1px 6px;
+  border-radius: 4px;
+  font-size: 10px;
+  font-weight: 600;
+  text-transform: uppercase;
+  letter-spacing: 0.5px;
+  margin-bottom: 4px;
+}
+
+.change-type.phrase    { background: rgba(108, 92, 231, 0.15); color: var(--accent-mid); }
+.change-type.filler    { background: rgba(255, 107, 107, 0.15); color: var(--error); }
+.change-type.redundant { background: rgba(255, 179, 71, 0.15); color: var(--warning); }
+.change-type.ceremony  { background: rgba(0, 206, 255, 0.15); color: var(--info); }
+.change-type.whitespace { background: rgba(90, 96, 114, 0.15); color: var(--text-muted); }
+
+.change-detail { color: var(--text-secondary); }
+.change-detail .original {
+  text-decoration: line-through;
+  color: var(--error);
+  opacity: 0.8;
+}
+.change-detail .arrow-icon { margin: 0 4px; color: var(--text-muted); }
+.change-detail .replacement { color: var(--success); font-weight: 500; }
+
+/* Lint list */
+.lint-list {
+  display: flex;
+  flex-direction: column;
+  gap: 6px;
+  padding-right: 2px;
+}
+
+.lint-item {
+  display: flex;
+  gap: 10px;
+  align-items: flex-start;
+  padding: 10px 12px;
+  border-radius: var(--radius-sm);
+  background: var(--bg-surface);
+  border: 1px solid var(--glass-border);
+  font-size: 12px;
+  line-height: 1.5;
+  transition: border-color 0.2s;
+}
+
+.lint-item.lint-error   { border-left: 2px solid var(--error); }
+.lint-item.lint-warning { border-left: 2px solid var(--warning); }
+.lint-item.lint-info    { border-left: 2px solid var(--info); }
+.lint-item.lint-hint    { border-left: 2px solid var(--text-muted); }
+
+.lint-icon  { font-size: 11px; flex-shrink: 0; margin-top: 1px; }
+.lint-body  { flex: 1; }
+.lint-message {
+  color: var(--text-primary);
+  font-size: 11.5px;
+  line-height: 1.5;
+}
+.lint-meta {
+  margin-top: 2px;
+  font-size: 10px;
+  color: var(--text-muted);
+  letter-spacing: 0.3px;
+}
+
+/* ── Fix All Button ────────────────────────────────────── */
+.btn-fix-all {
+  flex: 1;
+  padding: 10px 16px;
+  border-radius: var(--radius-sm);
+  border: none;
+  background: linear-gradient(135deg, #10b981, #34d399);
+  color: #fff;
+  font-family: inherit;
+  font-size: 12px;
+  font-weight: 600;
+  cursor: pointer;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  gap: 6px;
+  transition: all 0.2s var(--ease-out-expo);
+  box-shadow: 0 2px 8px rgba(16, 185, 129, 0.25);
+  white-space: nowrap;
+}
+
+.btn-fix-all:hover {
+  transform: translateY(-1px);
+  box-shadow: 0 4px 16px rgba(16, 185, 129, 0.4);
+}
+
+.btn-fix-all:active { transform: translateY(0); }
+
+.btn-fix-all.success {
+  background: linear-gradient(135deg, #059669, #10b981);
+}
+
+/* ── Empty State (inside panels) ───────────────────────── */
 .empty-state {
   text-align: center;
   padding: 24px 16px;
@@ -581,7 +727,30 @@ body {
   line-height: 1.6;
 }
 
-.empty-state .icon {
-  font-size: 32px;
-  margin-bottom: 8px;
+.empty-state__icon {
+  font-size: 28px;
+  margin-bottom: 6px;
+  color: var(--success);
+}
+
+.empty-state__text {
+  font-weight: 600;
+  color: var(--text-secondary);
+  margin-bottom: 2px;
+}
+
+.empty-state__sub {
+  font-size: 11px;
+  color: var(--text-muted);
+}
+
+/* ── Accessibility: respect prefers-reduced-motion ─────── */
+@media (prefers-reduced-motion: reduce) {
+  *,
+  *::before,
+  *::after {
+    animation-duration: 0.01ms !important;
+    animation-iteration-count: 1 !important;
+    transition-duration: 0.01ms !important;
+  }
 }

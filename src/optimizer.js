@@ -152,21 +152,22 @@ function applyPromptCeremony(text, changes) {
  */
 function applyFillerWordRemoval(text, changes) {
   for (const filler of FILLER_WORDS) {
-    // Match the filler word with surrounding space, preserving one space
-    const regex = new RegExp(`\\b${escapeRegex(filler)}\\s+`, 'gi');
-    if (regex.test(text)) {
-      regex.lastIndex = 0;
-      text = text.replace(regex, (match) => {
-        changes.push({
-          type: 'filler',
-          original: match.trim(),
-          replacement: '(removed)',
-          confidence: 0.65,
-          explanation: `"${match.trim()}" is a filler word that adds no meaning.`,
-        });
-        return '';
+    // Match optional leading space + filler word + optional trailing whitespace
+    // This catches fillers mid-sentence AND at end-of-sentence (before punctuation)
+    const regex = new RegExp(`\\s*\\b${escapeRegex(filler)}\\b\\s*`, 'gi');
+    text = text.replace(regex, (match) => {
+      const trimmed = match.trim();
+      if (!trimmed) return match;
+      changes.push({
+        type: 'filler',
+        original: trimmed,
+        replacement: '(removed)',
+        confidence: 0.65,
+        explanation: `"${trimmed}" is a filler word that adds no meaning.`,
       });
-    }
+      // Preserve a single space to avoid merging adjacent words
+      return ' ';
+    });
   }
   return text;
 }

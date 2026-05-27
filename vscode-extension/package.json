@@ -29,22 +29,13 @@
   "main": "./extension.js",
   "contributes": {
     "commands": [
-      {
-        "command": "densify.optimizePrompt",
-        "title": "Densify: Optimize Prompt"
-      },
-      {
-        "command": "densify.optimizeAndReplace",
-        "title": "Densify: Optimize & Replace"
-      },
-      {
-        "command": "densify.showSuggestions",
-        "title": "Densify: Show Suggestions"
-      },
-      {
-        "command": "densify.countTokens",
-        "title": "Densify: Count Tokens"
-      }
+      { "command": "densify.optimizePrompt",     "title": "Densify: Optimize Prompt",        "icon": "$(zap)" },
+      { "command": "densify.optimizeAndReplace", "title": "Densify: Optimize & Replace",     "icon": "$(zap)" },
+      { "command": "densify.showSuggestions",    "title": "Densify: Show Suggestions",       "icon": "$(list-unordered)" },
+      { "command": "densify.countTokens",        "title": "Densify: Count Tokens",           "icon": "$(symbol-numeric)" },
+      { "command": "densify.toggleHeatmap",      "title": "Densify: Toggle Token Heatmap",  "icon": "$(color-mode)" },
+      { "command": "densify.runLinter",          "title": "Densify: Run Prompt Linter",     "icon": "$(search)" },
+      { "command": "densify.showTelemetry",      "title": "Densify: Show Engine Telemetry", "icon": "$(pulse)" }
     ],
     "menus": {
       "editor/context": [
@@ -109,6 +100,21 @@
           "type": "boolean",
           "default": true,
           "description": "Show token count in the status bar."
+        },
+        "densify.enableHeatmap": {
+          "type": "boolean",
+          "default": true,
+          "description": "Show token density heatmap (line background coloring)."
+        },
+        "densify.enableLinter": {
+          "type": "boolean",
+          "default": true,
+          "description": "Enable prompt linter diagnostics in the Problems panel."
+        },
+        "densify.showInlineCost": {
+          "type": "boolean",
+          "default": false,
+          "description": "Show inline cost estimate (≈ $0.00003 · 12t) at end of each line."
         }
       }
     }

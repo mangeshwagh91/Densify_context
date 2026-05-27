@@ -14,7 +14,7 @@
   "scripts": {
     "test": "npx --node-options=--experimental-vm-modules jest --verbose",
     "test:coverage": "npx --node-options=--experimental-vm-modules jest --coverage",
-    "bench": "node benchmarks/bench.js"
+    "bench": "node benchmarks/bench.cjs"
   },
   "keywords": [
     "prompt",

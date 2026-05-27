@@ -1,0 +1,114 @@
+{
+  "timestamp": "2026-05-25T14:39:31.856Z",
+  "version": "5.0.0",
+  "iterations": 200,
+  "targets": {
+    "rule_engine": 2,
+    "tokenizer": 10,
+    "lint": 25
+  },
+  "results": {
+    "rule_engine": {
+      "latency": {
+        "avg": 0.413,
+        "min": 0.217,
+        "max": 6.963,
+        "p50": 0.304,
+        "p95": 0.715,
+        "p99": 1.594
+      },
+      "avgReduction": 11,
+      "avgChanges": 2.5,
+      "avgConfidence": 0.82
+    },
+    "tokenizer": {
+      "latency": {
+        "avg": 0.002,
+        "min": 0.001,
+        "max": 0.025,
+        "p50": 0.001,
+        "p95": 0.003,
+        "p99": 0.016
+      },
+      "coldMs": 0.009,
+      "warmLatency": {
+        "avg": 0.002,
+        "min": 0.001,
+        "max": 0.023,
+        "p50": 0.001,
+        "p95": 0.003,
+        "p99": 0.016
+      }
+    },
+    "suggestions": {
+      "latency": {
+        "avg": 0.355,
+        "min": 0.201,
+        "max": 3.525,
+        "p50": 0.297,
+        "p95": 0.628,
+        "p99": 0.814
+      },
+      "avgSuggestions": 2.1
+    },
+    "lint": {
+      "latency": {
+        "avg": 0.132,
+        "min": 0.037,
+        "max": 2.787,
+        "p50": 0.085,
+        "p95": 0.266,
+        "p99": 0.721
+      },
+      "avgDiagnostics": 3.3
+    },
+    "idiom_guard": {
+      "idiomsTestedCount": 6,
+      "falsePositiveCount": 1,
+      "falseNegativeCount": 1,
+      "falsePositiveRate": 0.167
+    },
+    "token_reduction": [
+      {
+        "text": "Hello there! I hope you are doing well. I would like you to please help me understand, if it is at all possible, the process by which machine learning models are trained. I was wondering if you could kindly explain this in detail. I really appreciate any help you can provide. Thank you so much in advance!",
+        "before": 83,
+        "after": 64,
+        "pct": 23
+      },
+      {
+        "text": "Good morning! I have a question that I would like you to answer. Could you please explain, due to the fact that I am quite confused, how neural networks actually work? It is important to note that I am a complete beginner. I would really appreciate it if you could keep things simple. Thanks a lot!",
+        "before": 82,
+        "after": 49,
+        "pct": 40
+      },
+      {
+        "text": "Hey there! I would love it if you could help me with something that is basically really quite important to me. I need you to help me write a professional email. I think it should be formal but also friendly. Could you please take into consideration my specific needs? I definitely need this done soon. Thanks!",
+        "before": 79,
+        "after": 55,
+        "pct": 30
+      },
+      {
+        "text": "Hi! My question is: could you please provide me with an explanation of what blockchain technology is and how it fundamentally actually works? I believe it is really quite complex, but I was wondering if you could perhaps simplify it somewhat. Please and thank you!",
+        "before": 72,
+        "after": 43,
+        "pct": 40
+      },
+      {
+        "text": "Good afternoon. I would be so grateful if you could assist me with understanding, in the event that you have the time, how to write clean code. It should be noted that I have a tendency to write code that is not particularly well organized. I would like you to take into consideration best practices. I definitely, absolutely need practical examples.",
+        "before": 89,
+        "after": 59,
+        "pct": 34
+      }
+    ],
+    "memory": {
+      "heapBefore": 7172,
+      "heapAfter": 7249,
+      "heapDeltaKB": 77
+    }
+  },
+  "failures": [
+    "idiom_guard falsePositiveRate=0.167"
+  ],
+  "elapsedMs": 347,
+  "passed": false
+}

@@ -15,6 +15,7 @@
       <h1>Densify Context</h1>
       <p>Compress prompts. Save tokens. Save money.</p>
     </div>
+    <div class="header-badge" id="header-badge" aria-label="Suggestion count" style="display:none"></div>
   </div>
 
   <!-- Main Content -->
@@ -23,7 +24,7 @@
     <!-- Model Selector -->
     <div class="model-selector">
       <label for="model-select">Cost model:</label>
-      <select id="model-select">
+      <select id="model-select" aria-label="Select LLM model for cost estimation">
         <option value="gpt-4o" selected>GPT-4o</option>
         <option value="gpt-4o-mini">GPT-4o Mini</option>
         <option value="gpt-4-turbo">GPT-4 Turbo</option>
@@ -47,17 +48,25 @@
         class="input-textarea"
         placeholder="Paste your verbose prompt here…"
         spellcheck="false"
+        aria-label="Input prompt text"
       ></textarea>
+      <!-- Live token counter + context-window bar -->
+      <div class="token-bar-row">
+        <span class="live-token-count" id="live-token-count"></span>
+        <div class="token-bar-wrap" id="token-bar-wrap" style="display:none" aria-label="Token usage relative to model context window">
+          <div class="token-bar" id="token-bar"></div>
+        </div>
+      </div>
     </div>
 
     <!-- Optimize Button -->
-    <button id="optimize-btn" class="optimize-btn" disabled>
+    <button id="optimize-btn" class="optimize-btn" disabled aria-label="Optimize prompt">
       <span class="spinner"></span>
       <span class="btn-label">⚡ Optimize Prompt</span>
     </button>
 
     <!-- Stats -->
-    <div id="stats-bar" class="stats-bar">
+    <div id="stats-bar" class="stats-bar" aria-live="polite">
       <div class="stats-row">
         <div class="stat-item">
           <span id="stat-tokens" class="stat-value tokens">0</span>
@@ -80,36 +89,52 @@
     <div id="output-group" class="output-group">
       <div class="output-header">
         <label class="input-label">Optimized Prompt</label>
-        <span id="confidence-badge" class="confidence-badge high">●  0.95</span>
+        <span id="confidence-badge" class="confidence-badge high" aria-label="Confidence score">●  0.95</span>
       </div>
       <textarea
         id="output-text"
         class="output-textarea"
         readonly
         spellcheck="false"
+        aria-label="Optimized prompt output"
+        aria-readonly="true"
       ></textarea>
     </div>
 
     <!-- Action Buttons -->
     <div id="action-buttons" class="action-buttons">
-      <button id="btn-copy" class="btn-secondary btn-copy">
+      <button id="btn-copy" class="btn-secondary btn-copy" aria-label="Copy optimized prompt to clipboard">
         📋 Copy
       </button>
-      <button id="btn-replace" class="btn-secondary btn-replace">
-        🔄 Replace on Page
+      <button id="btn-fix-all" class="btn-fix-all" aria-label="Fix all suggestions on the current page">
+        ✅ Fix All on Page
       </button>
-      <button id="btn-clear" class="btn-secondary">
+      <button id="btn-replace" class="btn-secondary btn-replace" aria-label="Replace text on page with optimized version">
+        🔄 Replace
+      </button>
+      <button id="btn-clear" class="btn-secondary" aria-label="Clear all fields">
         ✕ Clear
       </button>
     </div>
 
-    <!-- Changes List -->
-    <div id="changes-section" class="changes-section">
-      <button id="changes-toggle" class="changes-toggle">
-        <span><span id="changes-count">0</span> changes applied</span>
-        <span class="arrow">▼</span>
+    <!-- Tab bar: Changes | Lint -->
+    <div id="results-tabs" class="results-tabs" style="display:none">
+      <button class="tab-btn tab-active" id="tab-changes" aria-selected="true">
+        <span id="changes-count">0</span> Changes
       </button>
+      <button class="tab-btn" id="tab-lint" aria-selected="false">
+        <span id="lint-count">0</span> Diagnostics
+      </button>
+    </div>
+
+    <!-- Changes panel -->
+    <div id="changes-panel" class="results-panel">
       <div id="changes-list" class="changes-list"></div>
+    </div>
+
+    <!-- Lint panel (hidden by default) -->
+    <div id="lint-panel" class="results-panel" style="display:none">
+      <div id="lint-list" class="lint-list"></div>
     </div>
 
   </div>
@@ -119,6 +144,12 @@
     <p>🔒 100% local — no data leaves your browser</p>
   </div>
 
+  <script src="../lib/tokenizer.js"></script>
+  <script src="../lib/confidence.js"></script>
+  <script src="../lib/rules-registry.js"></script>
+  <script src="../lib/lint-engine.js"></script>
+  <script src="../lib/telemetry.js"></script>
+  <script src="../lib/worker-bridge.js"></script>
   <script src="../lib/densify-engine.js"></script>
   <script src="popup.js"></script>
 </body>
