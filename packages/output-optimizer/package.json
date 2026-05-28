@@ -1,0 +1,8 @@
+{
+  "name": "@densify/output-optimizer",
+  "version": "1.0.0",
+  "description": "Extractive output summarizer and formatter — TextRank-based, zero dependencies",
+  "type": "module",
+  "main": "index.js",
+  "license": "MIT"
+}

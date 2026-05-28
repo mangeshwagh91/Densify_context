@@ -125,7 +125,10 @@
 .dcx-suggestion-popup {
   position: fixed;
   z-index: 2147483647;
-  width: 320px;
+  width: 340px;
+  display: flex;
+  flex-direction: column;
+  max-height: 480px;
   border-radius: 14px;
   background: #16181f;
   /* Subtle gradient accent strip at top */
@@ -214,7 +217,6 @@
 .dcx-sp-badge {
   display: inline-flex;
   align-items: center;
-  margin: 10px 14px 0;
   padding: 3px 9px;
   border-radius: 20px;
   font-size: 10px; font-weight: 700;
@@ -226,17 +228,46 @@
 .dcx-badge-phrase     { background: rgba(168,85,247,0.15);  color: #c084fc; }
 .dcx-badge-redundant  { background: rgba(16,185,129,0.15);  color: #34d399; }
 .dcx-badge-structural { background: rgba(107,114,128,0.15); color: #9ca3af; }
+.dcx-badge-ast_encode { background: rgba(236,72,153,0.15); color: #f472b6; }
+.dcx-badge-embed_filter { background: rgba(20,184,166,0.15); color: #2dd4bf; }
 
-/* Body */
-.dcx-sp-body { padding: 10px 14px 0; }
+/* ── Scrollable suggestion list ───────────────────── */
+.dcx-sp-list {
+  flex: 1;
+  overflow-y: auto;
+  overflow-x: hidden;
+  scrollbar-width: thin;
+  scrollbar-color: rgba(255,255,255,0.12) transparent;
+}
+.dcx-sp-list::-webkit-scrollbar { width: 4px; }
+.dcx-sp-list::-webkit-scrollbar-track { background: transparent; }
+.dcx-sp-list::-webkit-scrollbar-thumb {
+  background: rgba(255,255,255,0.12);
+  border-radius: 4px;
+}
+
+/* Individual suggestion item */
+.dcx-sp-item {
+  padding: 12px 14px;
+  border-bottom: 1px solid rgba(255,255,255,0.055);
+}
+.dcx-sp-item:last-child { border-bottom: none; }
+.dcx-sp-item:hover { background: rgba(255,255,255,0.02); }
+
+.dcx-sp-item-hd {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  margin-bottom: 8px;
+}
 
 .dcx-change {
   display: flex;
   align-items: center;
   flex-wrap: wrap;
   gap: 6px;
-  margin-bottom: 8px;
-  font-size: 14px;
+  margin-bottom: 6px;
+  font-size: 13.5px;
   font-weight: 500;
 }
 
@@ -253,62 +284,42 @@
   font-size: 11.5px;
   color: #6b7280;
   line-height: 1.55;
+  margin-bottom: 10px;
 }
 
 .dcx-tok {
   display: inline-flex;
-  margin-top: 8px;
   padding: 2px 8px;
   background: rgba(16,185,129,0.1);
   border: 1px solid rgba(16,185,129,0.2);
   border-radius: 10px;
   color: #34d399;
   font-size: 10.5px; font-weight: 700;
+  flex-shrink: 0;
 }
 
-/* Navigation (1 of N) */
-.dcx-sp-nav {
-  display: flex;
-  align-items: center;
-  justify-content: center;
-  gap: 10px;
-  padding: 8px 14px 0;
-  font-size: 11px;
-  color: #6b7280;
-}
-
-.dcx-nav-btn {
-  background: rgba(255,255,255,0.06);
-  border: none;
-  color: #9ba1b0;
-  width: 24px; height: 24px;
-  border-radius: 6px;
-  cursor: pointer;
-  font-size: 14px; line-height: 1;
-  display: flex; align-items: center; justify-content: center;
-  transition: background 0.15s, color 0.15s;
-  font-family: inherit;
-}
-.dcx-nav-btn:not([disabled]):hover { background: rgba(255,255,255,0.12); color: #f0f2f7; }
-.dcx-nav-btn[disabled] { opacity: 0.3; cursor: default; }
-
-/* Action buttons */
-.dcx-sp-btns {
+/* Per-item Accept / Dismiss row */
+.dcx-sp-item-btns {
   display: flex;
   gap: 6px;
-  padding: 12px 14px 14px;
-  flex-wrap: wrap;
+  margin-top: 2px;
 }
 
+/* ── Footer (Accept All) ────────────────────── */
+.dcx-sp-footer {
+  padding: 10px 14px 12px;
+  border-top: 1px solid rgba(255,255,255,0.06);
+  background: rgba(255,255,255,0.02);
+}
+
+/* Item-level Accept / Dismiss — compact pill buttons */
 .dcx-sp-accept,
-.dcx-sp-accept-all,
 .dcx-sp-dismiss {
-  flex: 1;
-  padding: 9px 10px;
-  border-radius: 9px;
+  padding: 6px 14px;
+  border-radius: 7px;
   border: none;
   font-family: inherit;
-  font-size: 12px; font-weight: 600;
+  font-size: 11.5px; font-weight: 600;
   cursor: pointer;
   transition: all 0.15s cubic-bezier(0.16,1,0.3,1);
   white-space: nowrap;
@@ -317,25 +328,13 @@
 .dcx-sp-accept {
   background: linear-gradient(135deg,#6C5CE7,#a66bff);
   color: #fff;
-  box-shadow: 0 2px 8px rgba(108,92,231,0.3);
+  box-shadow: 0 2px 8px rgba(108,92,231,0.25);
 }
 .dcx-sp-accept:hover {
-  box-shadow: 0 4px 16px rgba(108,92,231,0.5);
+  box-shadow: 0 3px 14px rgba(108,92,231,0.5);
   transform: translateY(-1px);
 }
 .dcx-sp-accept:active { transform: translateY(0); }
-
-/* Accept All — teal variant */
-.dcx-sp-accept-all {
-  background: linear-gradient(135deg,#10b981,#34d399);
-  color: #fff;
-  box-shadow: 0 2px 8px rgba(16,185,129,0.3);
-}
-.dcx-sp-accept-all:hover {
-  box-shadow: 0 4px 16px rgba(16,185,129,0.5);
-  transform: translateY(-1px);
-}
-.dcx-sp-accept-all:active { transform: translateY(0); }
 
 .dcx-sp-dismiss {
   background: rgba(255,255,255,0.06);
@@ -346,6 +345,28 @@
   background: rgba(255,255,255,0.10);
   color: #e2e4ea;
 }
+
+/* Footer Accept All — full-width teal */
+.dcx-sp-accept-all {
+  width: 100%;
+  padding: 9px 14px;
+  border-radius: 9px;
+  border: none;
+  font-family: inherit;
+  font-size: 12px; font-weight: 700;
+  cursor: pointer;
+  transition: all 0.15s cubic-bezier(0.16,1,0.3,1);
+  white-space: nowrap;
+  background: linear-gradient(135deg,#10b981,#34d399);
+  color: #fff;
+  box-shadow: 0 2px 8px rgba(16,185,129,0.3);
+  letter-spacing: 0.01em;
+}
+.dcx-sp-accept-all:hover {
+  box-shadow: 0 4px 16px rgba(16,185,129,0.5);
+  transform: translateY(-1px);
+}
+.dcx-sp-accept-all:active { transform: translateY(0); }
 
 /* ── Accessibility — respect prefers-reduced-motion ──────── */
 @media (prefers-reduced-motion: reduce) {
@@ -358,9 +379,96 @@
   .dcx-sp-accept,
   .dcx-sp-accept-all,
   .dcx-sp-dismiss,
-  .dcx-sp-x,
-  .dcx-nav-btn {
+  .dcx-sp-x {
     transition: none !important;
     animation: none !important;
   }
+}
+
+/* ── Output Compression (Phase 3) ────────────────────────── */
+
+.dcx-output-compress-btn {
+  position: absolute;
+  top: -12px;
+  right: -12px;
+  background: linear-gradient(135deg, #10b981, #34d399);
+  color: white;
+  border: none;
+  border-radius: 20px;
+  padding: 4px 10px;
+  font-size: 11px;
+  font-weight: 700;
+  cursor: pointer;
+  box-shadow: 0 4px 12px rgba(16, 185, 129, 0.4);
+  display: flex;
+  align-items: center;
+  gap: 5px;
+  opacity: 0;
+  transform: translateY(4px);
+  transition: all 0.2s cubic-bezier(0.16, 1, 0.3, 1);
+  z-index: 50;
+  font-family: 'Inter', -apple-system, BlinkMacSystemFont, sans-serif;
+}
+
+/* Show button when hovering over the block */
+[data-dcx-compressor="attached"]:hover .dcx-output-compress-btn {
+  opacity: 1;
+  transform: translateY(0);
+}
+
+.dcx-output-compress-btn:hover {
+  box-shadow: 0 6px 16px rgba(16, 185, 129, 0.5);
+  transform: scale(1.05);
+}
+
+.dcx-output-compress-btn.dcx-working {
+  background: #6b7280;
+  box-shadow: none;
+  cursor: wait;
+}
+
+/* Inline summary card */
+.dcx-summary-header {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  background: rgba(16, 185, 129, 0.1);
+  border: 1px solid rgba(16, 185, 129, 0.2);
+  padding: 8px 12px;
+  border-radius: 8px 8px 0 0;
+  margin-bottom: -1px; /* overlap border */
+  font-family: 'Inter', -apple-system, sans-serif;
+}
+
+.dcx-sh-ic {
+  width: 20px; height: 20px;
+  background: linear-gradient(135deg, #10b981, #34d399);
+  border-radius: 5px;
+  display: inline-flex; align-items: center; justify-content: center;
+  font-size: 10px; color: white;
+}
+
+.dcx-sh-tt {
+  font-weight: 700;
+  font-size: 13px;
+  color: #10b981;
+  flex: 1;
+}
+
+.dcx-sh-badge {
+  background: #10b981;
+  color: white;
+  font-size: 10px;
+  font-weight: 800;
+  padding: 2px 6px;
+  border-radius: 12px;
+}
+
+.dcx-summary-body {
+  border: 1px solid rgba(16, 185, 129, 0.2);
+  border-radius: 0 0 8px 8px;
+  padding: 14px;
+  background: rgba(255, 255, 255, 0.02);
+  color: inherit;
+  font-family: inherit;
 }

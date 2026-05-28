@@ -224,7 +224,7 @@
     const live = suggestions.filter(s => !dismissed.has(s.id));
     if (!live.length) return;
     if (popupEl && popupEl.classList.contains('dcx-sp-on')) { closePopup(); return; }
-    openPopupFor(live[0], floatBtn.getBoundingClientRect());
+    openPopup(floatBtn.getBoundingClientRect());
   }
 
   // ── Mirror overlay ────────────────────────────────────
@@ -292,8 +292,7 @@
         mark.style.cursor = 'pointer';
         mark.addEventListener('mousedown', e => {
           e.preventDefault(); e.stopPropagation();
-          const sug = suggestions.find(s => s.id === mark.dataset.id);
-          if (sug) openPopupFor(sug, mark.getBoundingClientRect());
+          openPopup(mark.getBoundingClientRect());
         });
       });
     });
@@ -307,77 +306,73 @@
     popupEl.className = 'dcx-suggestion-popup';
     popupEl.innerHTML = `
       <div class="dcx-sp-hd">
-        <div class="dcx-sp-ttl"><span class="dcx-sp-ic">⚡</span><span>Densify Suggestion</span></div>
+        <div class="dcx-sp-ttl"><span class="dcx-sp-ic">⚡</span><span>Densify Suggestions</span></div>
         <button class="dcx-sp-x" id="dcx-sp-x">✕</button>
       </div>
-      <div class="dcx-sp-badge" id="dcx-sp-badge"></div>
-      <div class="dcx-sp-body" id="dcx-sp-body"></div>
-      <div class="dcx-sp-nav" id="dcx-sp-nav"></div>
-      <div class="dcx-sp-btns">
-        <button class="dcx-sp-accept" id="dcx-sp-ok">Accept</button>
-        <button class="dcx-sp-accept-all" id="dcx-sp-all">Accept All</button>
-        <button class="dcx-sp-dismiss" id="dcx-sp-no">Dismiss</button>
+      <div class="dcx-sp-list" id="dcx-sp-list"></div>
+      <div class="dcx-sp-footer">
+        <button class="dcx-sp-accept-all" id="dcx-sp-all">⚡ Accept All</button>
       </div>`;
     popupEl.querySelector('#dcx-sp-x').addEventListener('click', closePopup);
-    popupEl.querySelector('#dcx-sp-ok').addEventListener('click', onAccept);
     popupEl.querySelector('#dcx-sp-all').addEventListener('click', onAcceptAll);
-    popupEl.querySelector('#dcx-sp-no').addEventListener('click', onDismiss);
     popupEl.addEventListener('mousedown', e => e.stopPropagation());
     document.body.appendChild(popupEl);
     return popupEl;
   }
 
-  function openPopupFor(sug, anchor) {
-    const p = ensurePopup();
-    activeSugId = sug.id;
-    p.classList.remove('dcx-sp-on');
+  const LABELS = {
+    phrase: 'Verbose Phrase', filler: 'Filler Word',
+    ceremony: 'Prompt Ceremony', redundant: 'Redundant Modifier', structural: 'Structure',
+    ast_encode: 'AST Semantic', embed_filter: 'Relevance Filter',
+  };
 
-    const LABELS = {
-      phrase: 'Verbose Phrase', filler: 'Filler Word',
-      ceremony: 'Prompt Ceremony', redundant: 'Redundant Modifier', structural: 'Structure',
-    };
-    const badge = p.querySelector('#dcx-sp-badge');
-    badge.textContent = LABELS[sug.type] || sug.type;
-    badge.className = 'dcx-sp-badge dcx-badge-' + sug.type;
-
+  function renderSuggestionItem(sug, index, total) {
     const rep = sug.replacement === '(remove)'
       ? '<em class="dcx-rem">(remove)</em>'
       : `<span class="dcx-rep">${escHtml(sug.replacement)}</span>`;
 
-    p.querySelector('#dcx-sp-body').innerHTML = `
+    const item = document.createElement('div');
+    item.className = 'dcx-sp-item';
+    item.dataset.id = sug.id;
+    item.innerHTML = `
+      <div class="dcx-sp-item-hd">
+        <span class="dcx-sp-badge dcx-badge-${sug.type}">${LABELS[sug.type] || sug.type}</span>
+        ${sug.tokensSaved > 0 ? `<span class="dcx-tok">−${sug.tokensSaved} token${sug.tokensSaved > 1 ? 's' : ''}</span>` : ''}
+      </div>
       <div class="dcx-change">
         <span class="dcx-orig">${escHtml(sug.original)}</span>
         <span class="dcx-arr">→</span>${rep}
       </div>
       <div class="dcx-expl">${escHtml(sug.explanation)}</div>
-      ${sug.tokensSaved > 0 ? `<div class="dcx-tok">−${sug.tokensSaved} token${sug.tokensSaved > 1 ? 's' : ''}</div>` : ''}`;
+      <div class="dcx-sp-item-btns">
+        <button class="dcx-sp-accept" data-accept="${sug.id}">Accept</button>
+        <button class="dcx-sp-dismiss" data-dismiss="${sug.id}">Dismiss</button>
+      </div>`;
+
+    item.querySelector(`[data-accept]`).addEventListener('click', () => onAcceptOne(sug.id));
+    item.querySelector(`[data-dismiss]`).addEventListener('click', () => onDismissOne(sug.id));
+    return item;
+  }
+
+  function openPopup(anchor) {
+    const p = ensurePopup();
+    p.classList.remove('dcx-sp-on');
 
     const live = suggestions.filter(s => !dismissed.has(s.id));
-    const idx = live.findIndex(s => s.id === sug.id);
-    const nav = p.querySelector('#dcx-sp-nav');
-
-    if (live.length > 1) {
-      nav.innerHTML = `
-        <button class="dcx-nav-btn" id="dcx-prev" ${idx === 0 ? 'disabled' : ''}>‹</button>
-        <span>${idx + 1} / ${live.length}</span>
-        <button class="dcx-nav-btn" id="dcx-next" ${idx === live.length - 1 ? 'disabled' : ''}>›</button>`;
-      nav.querySelector('#dcx-prev')?.addEventListener('click', () => {
-        if (idx > 0) openPopupFor(live[idx - 1], floatBtn.getBoundingClientRect());
-      });
-      nav.querySelector('#dcx-next')?.addEventListener('click', () => {
-        if (idx < live.length - 1) openPopupFor(live[idx + 1], floatBtn.getBoundingClientRect());
-      });
-      nav.style.display = 'flex';
-    } else {
-      nav.style.display = 'none';
-    }
+    const list = p.querySelector('#dcx-sp-list');
+    list.innerHTML = '';
+    live.forEach((sug, i) => list.appendChild(renderSuggestionItem(sug, i, live.length)));
 
     // Show "Accept All" only when there are multiple live suggestions
     const allBtn = p.querySelector('#dcx-sp-all');
     allBtn.style.display = live.length > 1 ? '' : 'none';
 
+    // Update count in header
+    p.querySelector('.dcx-sp-ttl span:last-child').textContent =
+      `Densify Suggestions${live.length > 0 ? ` (${live.length})` : ''}`;
+
     // Position fixed, below anchor, clamped to viewport
-    const PW = 320;
+    const PW = 340;
     let t = anchor.bottom + 10, l = anchor.left;
     if (l + PW > window.innerWidth - 8) l = window.innerWidth - PW - 8;
     if (l < 8) l = 8;
@@ -400,12 +395,17 @@
     activeSugId = null;
   }
 
-  function onAccept() {
-    if (!activeSugId || !activeEl) return;
-    const newText = engine.applySuggestions(getText(activeEl), suggestions, [activeSugId]);
+  function onAcceptOne(id) {
+    if (!activeEl) return;
+    const newText = engine.applySuggestions(getText(activeEl), suggestions, [id]);
     setText(activeEl, newText);
-    closePopup();
     runAnalysis();
+    // Re-render the list after a brief pause for analysis to update
+    setTimeout(() => {
+      const live = suggestions.filter(s => !dismissed.has(s.id));
+      if (!live.length) { closePopup(); return; }
+      openPopup(floatBtn.getBoundingClientRect());
+    }, 80);
   }
 
   /** Accept every live suggestion in a single pass (applied in reverse-index order). */
@@ -420,17 +420,15 @@
     runAnalysis();
   }
 
-  function onDismiss() {
-    if (!activeSugId) return;
-    dismissed.add(activeSugId);
+  function onDismissOne(id) {
+    dismissed.add(id);
     _saveDismissed();
-    closePopup();
     suggestions = suggestions.filter(s => !dismissed.has(s.id));
     refreshMirror(); showBtn(activeEl);
-    // Show next suggestion popup
-    if (suggestions.length > 0) {
-      setTimeout(() => openPopupFor(suggestions[0], floatBtn.getBoundingClientRect()), 120);
-    }
+    // Re-render or close
+    const live = suggestions.filter(s => !dismissed.has(s.id));
+    if (!live.length) { closePopup(); return; }
+    openPopup(floatBtn.getBoundingClientRect());
   }
 
   // ── Analysis ──────────────────────────────────────────
@@ -455,36 +453,88 @@
     setBtnAnalyzing(true);
 
     try {
-      let result;
+      let rawSuggestions = [];
+      let structural = [];
+
       if (bridge) {
-        result = await bridge.analyze(text, { model: 'gpt-4o' });
+        // Run parallel: analyze (rules + structure), astEncode, embedFilter
+        const query = text.split(/[.!?]/)[0] || text;
+        const [result, astRes, filterRes] = await Promise.all([
+          bridge.analyze(text, { model: 'gpt-4o' }),
+          bridge.astEncode(text),
+          bridge.embedFilter(text, query, 0.08)
+        ]);
+
+        // Discard superseded or stale responses
+        if (!result || result._superseded) { setBtnAnalyzing(false); return; }
+        if (seqId !== _analysisId) { setBtnAnalyzing(false); return; }
+
+        rawSuggestions = Array.isArray(result.suggestions) ? result.suggestions : [];
+        structural = Array.isArray(result.structural) ? result.structural : [];
+
+        // Combine AST Encoder
+        if (astRes && astRes.tokensSaved > 0) {
+          rawSuggestions.push({
+            id: 'ast_' + Math.random().toString(36).substr(2, 9),
+            type: 'ast_encode',
+            original: text, // replaces the whole text or large block
+            replacement: astRes.compressed,
+            explanation: `AST Compression: rewrote prompt to compact semantics (${astRes.ratio * 100}% reduction)`,
+            tokensSaved: astRes.tokensSaved,
+            confidence: 0.9,
+            severity: 'high',
+            startIndex: 0, endIndex: text.length,
+          });
+        }
+
+        // Combine Embedding Filter
+        if (filterRes && filterRes.dropped > 0) {
+          rawSuggestions.push({
+            id: 'emb_' + Math.random().toString(36).substr(2, 9),
+            type: 'embed_filter',
+            original: text,
+            replacement: filterRes.filtered,
+            explanation: `Semantic Filter: removed ${filterRes.dropped} low-relevance sentences`,
+            tokensSaved: 0, // dynamic
+            confidence: 0.85,
+            severity: 'medium',
+            startIndex: 0, endIndex: text.length,
+          });
+        }
+
+        console.debug('[Densify] Bridge result — suggestions:', rawSuggestions.length,
+          '| structural:', structural.length, '| bridge ready:', bridge.isReady(),
+          '| fallback:', bridge.isFallback());
       } else {
-        result = { suggestions: engine.getSuggestions(text) };
+        if (seqId !== _analysisId) { setBtnAnalyzing(false); return; }
+        rawSuggestions = engine.getSuggestions(text);
+        console.debug('[Densify] Local engine — suggestions:', rawSuggestions.length);
       }
 
-      // Discard superseded responses
-      if (!result || result._superseded) return;
-      // Discard if a newer local analysis was started
-      if (seqId !== _analysisId) return;
+      // If the bridge returned nothing (worker may have failed to load its scripts),
+      // fall back directly to the main-thread engine so the UI always works.
+      if (rawSuggestions.length === 0 && engine) {
+        rawSuggestions = engine.getSuggestions(text);
+        console.debug('[Densify] Engine direct fallback — suggestions:', rawSuggestions.length);
+      }
 
       setBtnAnalyzing(false);
 
-      suggestions = result.suggestions.filter(s => !dismissed.has(s.id));
+      suggestions = rawSuggestions.filter(s => !dismissed.has(s.id));
 
       // Map structural diagnostics to suggestion format
-      if (result.structural && result.structural.length > 0) {
-        for (const st of result.structural) {
-          suggestions.push({
-            id: 'struct_' + Math.random().toString(36).substr(2, 9),
-            type: 'structural',
-            original: st.sentence2,
-            replacement: '(remove)',
-            explanation: st.suggestion,
-            tokensSaved: st.tokensSaved,
-            confidence: st.similarity,
-            severity: 'high',
-          });
-        }
+      for (const st of structural) {
+        suggestions.push({
+          id: 'struct_' + Math.random().toString(36).substr(2, 9),
+          type: 'structural',
+          original: st.sentence2,
+          replacement: '(remove)',
+          explanation: st.suggestion,
+          tokensSaved: st.tokensSaved || 0,
+          confidence: st.similarity || 0.6,
+          severity: 'high',
+          startIndex: 0, endIndex: 0,
+        });
       }
 
       refreshMirror();
@@ -492,6 +542,11 @@
     } catch (e) {
       setBtnAnalyzing(false);
       console.warn('[Densify] Analysis failed:', e);
+      // Last-resort: try local engine directly
+      try {
+        suggestions = engine.getSuggestions(getText(activeEl)).filter(s => !dismissed.has(s.id));
+        refreshMirror(); showBtn(activeEl);
+      } catch (_) {}
     }
   }
 
@@ -614,6 +669,8 @@
         if (node.nodeType !== 1) continue;
         attachDirectListeners(node);
         if (node.shadowRoot) attachDirectListeners(node.shadowRoot);
+        // Also look for LLM output blocks in this subtree to add summarize buttons
+        attachOutputCompressors(node);
       }
     }
     if (activeEl && !document.contains(activeEl)) {
@@ -623,6 +680,72 @@
       hideBtn(); closePopup();
     }
   }).observe(document.body, { childList: true, subtree: true });
+
+  // ── Output Compression (Phase 3) ───────────────────────
+
+  // Detect LLM output blocks (ChatGPT, Claude, Gemini, etc.)
+  function attachOutputCompressors(root) {
+    if (!bridge) return;
+    // Look for common markdown prose blocks
+    const selector = '.markdown, .prose, [data-message-author-role="assistant"] .text-base';
+    const blocks = root.matches && root.matches(selector) ? [root] : root.querySelectorAll(selector);
+
+    blocks.forEach(block => {
+      if (block.dataset.dcxCompressor) return;
+      block.dataset.dcxCompressor = 'attached';
+
+      // Ensure block is relatively positioned for the absolute button
+      if (window.getComputedStyle(block).position === 'static') {
+        block.style.position = 'relative';
+      }
+
+      const btn = document.createElement('button');
+      btn.className = 'dcx-output-compress-btn';
+      btn.title = 'Densify — compress this response';
+      btn.innerHTML = '<span>⚡</span> Compress';
+
+      btn.addEventListener('click', async (e) => {
+        e.preventDefault(); e.stopPropagation();
+        if (btn.classList.contains('dcx-working')) return;
+        
+        btn.classList.add('dcx-working');
+        btn.innerHTML = '<span>…</span> Working';
+
+        try {
+          const text = block.innerText || block.textContent;
+          // Run summarization
+          const result = await bridge.summarize(text, { ratio: 0.6 });
+          
+          if (result && result.summary) {
+            // Replace block content with summary
+            block.innerHTML = `
+              <div class="dcx-summary-header">
+                <span class="dcx-sh-ic">⚡</span>
+                <span class="dcx-sh-tt">Densify Summary</span>
+                <span class="dcx-sh-badge">Reduced by ${(result.ratio * 100).toFixed(0)}%</span>
+              </div>
+              <div class="dcx-summary-body">${escHtml(result.summary)}</div>
+            `;
+            btn.style.display = 'none'; // Hide button after compression
+          } else {
+            btn.innerHTML = '<span>⚡</span> Compress';
+          }
+        } catch (err) {
+          console.warn('[Densify] Compress failed:', err);
+          btn.innerHTML = '<span>⚠️</span> Error';
+        } finally {
+          btn.classList.remove('dcx-working');
+          setTimeout(() => { if (btn.style.display !== 'none') btn.innerHTML = '<span>⚡</span> Compress'; }, 2000);
+        }
+      });
+
+      block.appendChild(btn);
+    });
+  }
+
+  // Initial scan for outputs
+  attachOutputCompressors(document.body);
+
 
   // ── Reposition on scroll / resize ─────────────────────
 

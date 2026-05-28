@@ -1,27 +1,14 @@
 // ─────────────────────────────────────────────────────────────────────────────
 //  lib/worker-bridge.js  —  Worker communication layer for content script
+//  v3 — Phase 3: adds embed-worker + compress-worker
 //
-//  Creates and manages the persistent optimizer Web Worker.
-//  Exposes a Promise-based API — callers never touch postMessage directly.
+//  Workers:
+//    optimizer-worker.js — Layer 1+2 analysis (rules, structural, lint)
+//    embed-worker.js     — TF-IDF semantic filter (Phase 3)
+//    compress-worker.js  — Output summarizer (Phase 3)
 //
-//  Usage:
-//    const bridge = DensifyWorkerBridge.getInstance();
-//    bridge.analyze(text, { model:'gpt-4o' }).then(result => { ... });
-//
-//  Thread model:
-//    Content script (main thread) → WorkerBridge → Worker → result
-//    Layer 1 analysis still happens synchronously on main thread (<2ms)
-//    Layer 2 analysis happens in worker, result delivered via promise
-//
-//  Improvements (v2):
-//    - Shorter timeouts: ANALYZE 2s, OPTIMIZE 1.5s, TOKENIZE 1s
-//    - Request superseding: stale in-flight ANALYZE requests are auto-cancelled
-//      when a newer one arrives (avoids overwriting newer results with older)
-//    - Worker auto-restart: if onerror fires, retries _init() up to 3 times
-//    - isReady() / isFallback() health-check getters for UI feedback
-//    - Pending map cleared atomically on worker restart
-//
-//  Fallback: if Worker fails to load, all calls fall back to main-thread engine
+//  All calls are Promise-based; heavy work stays off the main thread.
+//  Fallback: if any worker fails, all calls use synchronous main-thread fallback.
 // ─────────────────────────────────────────────────────────────────────────────
 ;(function (root) {
   'use strict';
@@ -31,21 +18,29 @@
 
   // ── Timeouts per message type (ms) ─────────────────────────────────────────
   const TIMEOUTS = {
-    PING:     2500,   // generous — importScripts can take a moment on first load
-    TOKENIZE: 1000,
-    OPTIMIZE: 1500,
-    LINT:     2000,
-    ANALYZE:  2000,
+    PING:         2500,
+    TOKENIZE:     1000,
+    OPTIMIZE:     1500,
+    LINT:         2000,
+    ANALYZE:      2000,
+    // Phase 3
+    AST_ENCODE:    500,
+    EMBED_FILTER: 1500,
+    SUMMARIZE:    2000,
+    FORMAT:       1500,
+    STRIP_PREAMBLE: 500,
   };
 
   const MAX_RESTARTS = 3;
 
   class WorkerBridge {
     constructor() {
-      this._worker       = null;
+      this._worker       = null;   // optimizer worker
+      this._embedWorker  = null;   // embed/filter worker (Phase 3)
+      this._compWorker   = null;   // output compress worker (Phase 3)
       this._pending      = new Map();  // id → { resolve, reject, timer, type }
       this._ready        = false;
-      this._fallback     = false;      // true when worker failed permanently
+      this._fallback     = false;
       this._restarts     = 0;
       this._restarting   = false;
 
@@ -60,7 +55,6 @@
     // ── Initialisation ────────────────────────────────────────────────────────
 
     _init() {
-      // Guard: chrome.runtime may not be fully available in all frame contexts
       if (typeof chrome === 'undefined' || !chrome.runtime || !chrome.runtime.getURL) {
         console.debug('[Densify Worker] chrome.runtime unavailable — using main-thread fallback');
         this._fallback = true;
@@ -68,27 +62,46 @@
       }
 
       try {
+        // ── Optimizer worker ────────────────────────────────────────────────
         const workerUrl = chrome.runtime.getURL('workers/optimizer-worker.js');
         this._worker = new Worker(workerUrl);
-
         this._worker.onmessage = (e) => this._onMessage(e);
         this._worker.onerror   = (e) => this._onError(e);
 
-        // Ping to confirm worker is alive.
-        // On failure we simply fall back to main-thread — NO restart here.
-        // _scheduleRestart() is reserved for hard onerror crashes only.
         this.ping().then(() => {
           this._ready      = true;
           this._restarting = false;
-          console.debug('[Densify Worker] Ready');
-        }).catch((err) => {
-          console.warn('[Densify Worker] Ping timed out — using main-thread fallback');
-          this._fallback = true;  // safe; all future calls use _mainThreadFallback()
+          console.debug('[Densify Worker] Optimizer ready');
+        }).catch(() => {
+          console.warn('[Densify Worker] Optimizer ping timed out — main-thread fallback');
+          this._fallback = true;
         });
 
+        // ── Embed worker (Phase 3) ──────────────────────────────────────────
+        try {
+          const embedUrl = chrome.runtime.getURL('workers/embed-worker.js');
+          this._embedWorker = new Worker(embedUrl);
+          this._embedWorker.onmessage = (e) => this._onMessage(e);
+          this._embedWorker.onerror   = () => { this._embedWorker = null; };
+          console.debug('[Densify Worker] Embed worker started');
+        } catch (e) {
+          console.debug('[Densify Worker] Embed worker unavailable:', e.message);
+          this._embedWorker = null;
+        }
+
+        // ── Compress worker (Phase 3) ───────────────────────────────────────
+        try {
+          const compUrl = chrome.runtime.getURL('workers/compress-worker.js');
+          this._compWorker = new Worker(compUrl);
+          this._compWorker.onmessage = (e) => this._onMessage(e);
+          this._compWorker.onerror   = () => { this._compWorker = null; };
+          console.debug('[Densify Worker] Compress worker started');
+        } catch (e) {
+          console.debug('[Densify Worker] Compress worker unavailable:', e.message);
+          this._compWorker = null;
+        }
+
       } catch (e) {
-        // Worker constructor failed (e.g. CSP, invalid URL, sandboxed frame).
-        // Fall back silently — the extension still works on the main thread.
         console.debug('[Densify Worker] Worker unavailable (' + e.message + ') — main-thread fallback');
         this._fallback = true;
       }
@@ -144,11 +157,20 @@
 
     // ── Core send ─────────────────────────────────────────────────────────────
 
+    /** Pick the right worker for the message type. */
+    _workerFor(type) {
+      if (['EMBED_FILTER','SIMILARITY','SCORE'].includes(type)) return this._embedWorker;
+      if (['SUMMARIZE','FORMAT','STRIP_PREAMBLE'].includes(type)) return this._compWorker;
+      return this._worker;
+    }
+
     _send(type, text, options, timeoutMs) {
       timeoutMs = timeoutMs || TIMEOUTS[type] || 2000;
 
+      const worker = this._workerFor(type);
+
       // Fallback: run on main thread synchronously
-      if (this._fallback || !this._worker) {
+      if (this._fallback || !worker) {
         return Promise.resolve(this._mainThreadFallback(type, text, options));
       }
 
@@ -179,7 +201,7 @@
         }, timeoutMs);
 
         this._pending.set(id, { resolve, reject, timer, type });
-        this._worker.postMessage({ id, type, text, options });
+        worker.postMessage({ id, type, text, options });
       });
     }
 
@@ -189,6 +211,7 @@
       const eng  = root.DensifyEngine;
       const tok  = root.DensifyTokenizer;
       const lint = root.DensifyLint;
+      const ast  = root.DensifyAST;
 
       switch (type) {
         case 'PING':     return { pong: true };
@@ -197,20 +220,49 @@
         case 'LINT':     return lint
           ? { diagnostics: lint.lint(text, options), summary: lint.summarize([]) }
           : { diagnostics: [], summary: {} };
+
         case 'ANALYZE': {
-          const sug      = eng  ? eng.getSuggestions(text, options?.model) : [];
-          const lnt      = lint ? lint.lint(text, options) : [];
+          const sug = eng  ? eng.getSuggestions(text, options?.model) : [];
+          const lnt = lint ? lint.lint(text, options) : [];
           const tokBefore = tok ? tok.countSync(text, options?.model) : 0;
-          return {
-            suggestions:  sug,
-            lint:         lnt,
-            structural:   [],
-            conflicts:    [],
-            tokensBefore: tokBefore,
-            tokensAfter:  tokBefore,
-            tokensSaved:  0,
-          };
+          return { suggestions: sug, lint: lnt, structural: [], conflicts: [],
+                   tokensBefore: tokBefore, tokensAfter: tokBefore, tokensSaved: 0 };
         }
+
+        // ── Phase 3 fallbacks ────────────────────────────────────────────────
+        case 'AST_ENCODE': {
+          if (!ast) return { compressed: text, tokensSaved: 0, ratio: 0 };
+          return ast.compress(text);
+        }
+
+        case 'EMBED_FILTER': {
+          // Simple fallback: no filtering, return as-is
+          return { filtered: text, dropped: 0, scores: [], ratio: 0 };
+        }
+
+        case 'SUMMARIZE': {
+          // Simple extractive fallback: keep first 50% of sentences
+          const sents  = text.split(/(?<=[.!?])\s+/).filter(s => s.length > 10);
+          const keep   = Math.max(2, Math.ceil(sents.length * ((options?.ratio) || 0.5)));
+          const summary = sents.slice(0, keep).join(' ').trim();
+          const saved   = Math.max(0, Math.ceil(text.length / 4) - Math.ceil(summary.length / 4));
+          return { summary, tokensSaved: saved, ratio: parseFloat(((sents.length - keep) / (sents.length || 1)).toFixed(3)), dropped: sents.length - keep };
+        }
+
+        case 'FORMAT': {
+          const sents2 = text.split(/(?<=[.!?])\s+/).filter(s => s.length > 10).slice(0, options?.maxItems || 10);
+          const formatted = sents2.map((s, i) => `${options?.numbered ? `${i+1}.` : '•'} ${s}`).join('\n');
+          return { formatted, itemCount: sents2.length };
+        }
+
+        case 'STRIP_PREAMBLE': {
+          const stripped = text
+            .replace(/^(certainly|of course|sure|absolutely|great|no problem|happy to help|i'd be happy to)[!,.] */i, '')
+            .replace(/^(here('s| is) (the answer|what i came up with):?\s*)/i, '')
+            .trim();
+          return { stripped };
+        }
+
         default: return null;
       }
     }
@@ -224,19 +276,37 @@
 
     /**
      * Full Layer 2 analysis: suggestions + lint + structural + tokens.
-     * Supersedes any in-flight ANALYZE automatically — callers must check
-     * result._superseded === true and discard it.
+     * Supersedes any in-flight ANALYZE automatically.
      */
     analyze(text, options)  { return this._send('ANALYZE',  text, options); }
 
-    /** True once the worker has responded to its first PING. */
+    // ── Phase 3 API ───────────────────────────────────────────────────────────
+
+    /** AST/DSL encode: compress verbose prompt to dense natural language. */
+    astEncode(text)                   { return this._send('AST_ENCODE',    text, null); }
+
+    /** Semantic sentence filter: drop low-relevance sentences. */
+    embedFilter(text, query, thresh)  { return this._send('EMBED_FILTER',  text, { query, threshold: thresh }); }
+
+    /** Extractive output summarization. */
+    summarize(text, options)          { return this._send('SUMMARIZE',     text, options); }
+
+    /** Format prose as bullet / numbered list. */
+    formatOutput(text, options)       { return this._send('FORMAT',        text, options); }
+
+    /** Strip LLM output preamble filler. */
+    stripPreamble(text)               { return this._send('STRIP_PREAMBLE', text, null); }
+
+    /** True once the optimizer worker has responded to its first PING. */
     isReady()    { return this._ready; }
 
-    /** True when the worker is permanently unavailable (all calls use fallback). */
+    /** True when the optimizer worker is permanently unavailable. */
     isFallback() { return this._fallback; }
 
     terminate() {
-      if (this._worker) { this._worker.terminate(); this._worker = null; }
+      if (this._worker)      { this._worker.terminate();      this._worker = null; }
+      if (this._embedWorker) { this._embedWorker.terminate(); this._embedWorker = null; }
+      if (this._compWorker)  { this._compWorker.terminate();  this._compWorker = null; }
       this._rejectAllPending('Bridge terminated');
     }
 

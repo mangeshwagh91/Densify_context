@@ -119,6 +119,14 @@
     ['give an indication of','indicate'],['have a tendency to','tend to'],
     ['make an attempt to','try to'],['is indicative of','indicates'],
     ['has an impact on','affects'],['is dependent on','depends on'],
+    // ── Verbose intent phrases
+    ['i want to tell you about','regarding'],
+    ['i want to tell you regarding','regarding'],
+    ['the main reason of telling this','my reason'],
+    ['the main reason for telling this','my reason'],
+    ['my genuine condition','my situation'],
+    ['for you opinion','for your opinion'],
+    ['to compare our thinking','to compare perspectives'],
   ]);
 
   // Sorted longest-first once at startup (avoids re-sorting on every call)
@@ -154,12 +162,22 @@
     .sort((a, b) => b[0].length - a[0].length);
 
   const PROMPT_CEREMONY = [
+    // AI name used as a bare greeting at the start (e.g. "chatgpt, i hope...")
+    { re: /^(chatgpt|claude|gemini|copilot|bard|perplexity|gpt)[,!.\s]*/i, replacement: '', label: 'greeting' },
+    // Classic greetings
     { re: /^(hi|hello|hey|greetings|good (morning|afternoon|evening)|dear (assistant|ai|chatgpt|claude))[,!.\s]*/i,  replacement: '', label: 'greeting' },
+    // "I hope you are doing well" and variants
+    { re: /\bi hope (you are|you're) (doing well|well|having a good day|doing great)[,!.\s]*/gi, replacement: '', label: 'pleasantry' },
+    // Closing thanks
     { re: /\s*(thank you( very much| so much| in advance)?|thanks( a lot| so much| in advance)?|please and thank you|i appreciate (it|your help|any help))[.!]*\s*$/i, replacement: '', label: 'closing thanks' },
+    // Politeness fillers
     { re: /\b(please|kindly)\s+/gi, replacement: '', label: 'politeness filler' },
+    // Framing phrases
     { re: /^(I have a question[.:]\s*)/i,  replacement: '', label: 'framing' },
     { re: /^(I('d| would) like (to ask|to know|you to tell me)\s*)/i, replacement: '', label: 'framing' },
     { re: /^(My question is[.:]\s*)/i, replacement: '', label: 'framing' },
+    // "i want to tell you about" — ceremony, not a question
+    { re: /\bi want to tell you (about|regarding|concerning)\s*/gi, replacement: '', label: 'ceremony' },
   ];
 
   const WHITESPACE_RULES = [
@@ -402,7 +420,13 @@
     let result = text;
     for (const sug of sorted) {
       const rep = sug.replacement === '(remove)' ? '' : (sug.replacement || '');
-      result = result.slice(0, sug.startIndex) + rep + result.slice(sug.endIndex);
+      // If it's a wholesale replacement (like AST Encode or Filter), it replaces everything
+      if (sug.startIndex === 0 && sug.endIndex === text.length) {
+        result = rep;
+        break; // A wholesale replacement supersedes all other partial changes
+      } else {
+        result = result.slice(0, sug.startIndex) + rep + result.slice(sug.endIndex);
+      }
     }
     return result.replace(/  +/g, ' ').trim();
   }

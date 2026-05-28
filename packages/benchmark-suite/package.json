@@ -1,0 +1,8 @@
+{
+  "name": "@densify/benchmark-suite",
+  "version": "1.0.0",
+  "description": "Automated benchmark harness for all Densify Phase 3 compression stages",
+  "type": "module",
+  "main": "index.js",
+  "license": "MIT"
+}

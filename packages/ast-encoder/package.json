@@ -1,0 +1,8 @@
+{
+  "name": "@densify/ast-encoder",
+  "version": "1.0.0",
+  "description": "AST/DSL encoder — parses verbose prompts into compact natural-language representations",
+  "type": "module",
+  "main": "index.js",
+  "license": "MIT"
+}

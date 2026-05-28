@@ -45,6 +45,7 @@
         "lib/rules-registry.js",
         "lib/lint-engine.js",
         "lib/telemetry.js",
+        "lib/ast-encoder.js",
         "lib/worker-bridge.js",
         "lib/densify-engine.js",
         "content/content.js"

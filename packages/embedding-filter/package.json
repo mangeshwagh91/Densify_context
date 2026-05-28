@@ -1,0 +1,8 @@
+{
+  "name": "@densify/embedding-filter",
+  "version": "1.0.0",
+  "description": "TF-IDF semantic sentence filter — drops low-relevance sentences from prompts",
+  "type": "module",
+  "main": "index.js",
+  "license": "MIT"
+}
