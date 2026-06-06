@@ -323,7 +323,7 @@
   const LABELS = {
     phrase: 'Verbose Phrase', filler: 'Filler Word',
     ceremony: 'Prompt Ceremony', redundant: 'Redundant Modifier', structural: 'Structure',
-    ast_encode: 'AST Semantic', embed_filter: 'Relevance Filter',
+    ast_encode: 'AST Semantic', embed_filter: 'Relevance Filter', out_comp: 'Output Density',
   };
 
   function renderSuggestionItem(sug, index, total) {
@@ -537,6 +537,22 @@
         });
       }
 
+      // Add Output Compression Suggestion
+      const constraintStr = '\n\n[Constraint: Provide a highly concise, token-efficient response. Omit filler and conversational text.]';
+      if (!text.includes('[Constraint: Provide a highly concise')) {
+        suggestions.push({
+          id: 'out_comp_' + Math.random().toString(36).substr(2, 9),
+          type: 'out_comp',
+          original: '',
+          replacement: constraintStr,
+          explanation: 'Append instruction to force the LLM to generate a shorter, denser reply.',
+          tokensSaved: 0,
+          confidence: 1.0,
+          severity: 'medium',
+          startIndex: text.length, endIndex: text.length,
+        });
+      }
+
       refreshMirror();
       showBtn(activeEl);
     } catch (e) {
@@ -669,8 +685,6 @@
         if (node.nodeType !== 1) continue;
         attachDirectListeners(node);
         if (node.shadowRoot) attachDirectListeners(node.shadowRoot);
-        // Also look for LLM output blocks in this subtree to add summarize buttons
-        attachOutputCompressors(node);
       }
     }
     if (activeEl && !document.contains(activeEl)) {
@@ -680,71 +694,6 @@
       hideBtn(); closePopup();
     }
   }).observe(document.body, { childList: true, subtree: true });
-
-  // ── Output Compression (Phase 3) ───────────────────────
-
-  // Detect LLM output blocks (ChatGPT, Claude, Gemini, etc.)
-  function attachOutputCompressors(root) {
-    if (!bridge) return;
-    // Look for common markdown prose blocks
-    const selector = '.markdown, .prose, [data-message-author-role="assistant"] .text-base';
-    const blocks = root.matches && root.matches(selector) ? [root] : root.querySelectorAll(selector);
-
-    blocks.forEach(block => {
-      if (block.dataset.dcxCompressor) return;
-      block.dataset.dcxCompressor = 'attached';
-
-      // Ensure block is relatively positioned for the absolute button
-      if (window.getComputedStyle(block).position === 'static') {
-        block.style.position = 'relative';
-      }
-
-      const btn = document.createElement('button');
-      btn.className = 'dcx-output-compress-btn';
-      btn.title = 'Densify — compress this response';
-      btn.innerHTML = '<span>⚡</span> Compress';
-
-      btn.addEventListener('click', async (e) => {
-        e.preventDefault(); e.stopPropagation();
-        if (btn.classList.contains('dcx-working')) return;
-        
-        btn.classList.add('dcx-working');
-        btn.innerHTML = '<span>…</span> Working';
-
-        try {
-          const text = block.innerText || block.textContent;
-          // Run summarization
-          const result = await bridge.summarize(text, { ratio: 0.6 });
-          
-          if (result && result.summary) {
-            // Replace block content with summary
-            block.innerHTML = `
-              <div class="dcx-summary-header">
-                <span class="dcx-sh-ic">⚡</span>
-                <span class="dcx-sh-tt">Densify Summary</span>
-                <span class="dcx-sh-badge">Reduced by ${(result.ratio * 100).toFixed(0)}%</span>
-              </div>
-              <div class="dcx-summary-body">${escHtml(result.summary)}</div>
-            `;
-            btn.style.display = 'none'; // Hide button after compression
-          } else {
-            btn.innerHTML = '<span>⚡</span> Compress';
-          }
-        } catch (err) {
-          console.warn('[Densify] Compress failed:', err);
-          btn.innerHTML = '<span>⚠️</span> Error';
-        } finally {
-          btn.classList.remove('dcx-working');
-          setTimeout(() => { if (btn.style.display !== 'none') btn.innerHTML = '<span>⚡</span> Compress'; }, 2000);
-        }
-      });
-
-      block.appendChild(btn);
-    });
-  }
-
-  // Initial scan for outputs
-  attachOutputCompressors(document.body);
 
 
   // ── Reposition on scroll / resize ─────────────────────

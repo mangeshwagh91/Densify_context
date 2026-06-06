@@ -20,6 +20,7 @@
   position: relative;
   display: inline;
   color: transparent;
+  background-color: transparent;
   border-radius: 2px;
   pointer-events: auto !important;
   cursor: pointer !important;
@@ -230,6 +231,7 @@
 .dcx-badge-structural { background: rgba(107,114,128,0.15); color: #9ca3af; }
 .dcx-badge-ast_encode { background: rgba(236,72,153,0.15); color: #f472b6; }
 .dcx-badge-embed_filter { background: rgba(20,184,166,0.15); color: #2dd4bf; }
+.dcx-badge-out_comp   { background: rgba(239,68,68,0.15); color: #ef4444; }
 
 /* ── Scrollable suggestion list ───────────────────── */
 .dcx-sp-list {
@@ -385,90 +387,4 @@
   }
 }
 
-/* ── Output Compression (Phase 3) ────────────────────────── */
 
-.dcx-output-compress-btn {
-  position: absolute;
-  top: -12px;
-  right: -12px;
-  background: linear-gradient(135deg, #10b981, #34d399);
-  color: white;
-  border: none;
-  border-radius: 20px;
-  padding: 4px 10px;
-  font-size: 11px;
-  font-weight: 700;
-  cursor: pointer;
-  box-shadow: 0 4px 12px rgba(16, 185, 129, 0.4);
-  display: flex;
-  align-items: center;
-  gap: 5px;
-  opacity: 0;
-  transform: translateY(4px);
-  transition: all 0.2s cubic-bezier(0.16, 1, 0.3, 1);
-  z-index: 50;
-  font-family: 'Inter', -apple-system, BlinkMacSystemFont, sans-serif;
-}
-
-/* Show button when hovering over the block */
-[data-dcx-compressor="attached"]:hover .dcx-output-compress-btn {
-  opacity: 1;
-  transform: translateY(0);
-}
-
-.dcx-output-compress-btn:hover {
-  box-shadow: 0 6px 16px rgba(16, 185, 129, 0.5);
-  transform: scale(1.05);
-}
-
-.dcx-output-compress-btn.dcx-working {
-  background: #6b7280;
-  box-shadow: none;
-  cursor: wait;
-}
-
-/* Inline summary card */
-.dcx-summary-header {
-  display: flex;
-  align-items: center;
-  gap: 8px;
-  background: rgba(16, 185, 129, 0.1);
-  border: 1px solid rgba(16, 185, 129, 0.2);
-  padding: 8px 12px;
-  border-radius: 8px 8px 0 0;
-  margin-bottom: -1px; /* overlap border */
-  font-family: 'Inter', -apple-system, sans-serif;
-}
-
-.dcx-sh-ic {
-  width: 20px; height: 20px;
-  background: linear-gradient(135deg, #10b981, #34d399);
-  border-radius: 5px;
-  display: inline-flex; align-items: center; justify-content: center;
-  font-size: 10px; color: white;
-}
-
-.dcx-sh-tt {
-  font-weight: 700;
-  font-size: 13px;
-  color: #10b981;
-  flex: 1;
-}
-
-.dcx-sh-badge {
-  background: #10b981;
-  color: white;
-  font-size: 10px;
-  font-weight: 800;
-  padding: 2px 6px;
-  border-radius: 12px;
-}
-
-.dcx-summary-body {
-  border: 1px solid rgba(16, 185, 129, 0.2);
-  border-radius: 0 0 8px 8px;
-  padding: 14px;
-  background: rgba(255, 255, 255, 0.02);
-  color: inherit;
-  font-family: inherit;
-}
