@@ -885,3 +885,6 @@ docker-compose up --build
 ---
 
 *Last updated: June 2026 | Status: MVP Complete (Phase 1) | License: Proprietary — GPS Renewables*
+
+
+//this is how project overview should look like, with comprehensive details on architecture, workflow, design decisions, and roadmap. It serves as a single source of truth for all stakeholders and guides development across frontend, backend, ML, and deployment.
