@@ -888,3 +888,7 @@ docker-compose up --build
 
 
 //this is how project overview should look like, with comprehensive details on architecture, workflow, design decisions, and roadmap. It serves as a single source of truth for all stakeholders and guides development across frontend, backend, ML, and deployment.
+
+
+
+//new commit for project overview with detailed architecture, workflow, design decisions, and roadmap. This document will be the single source of truth for all stakeholders and guide development across frontend, backend, ML, and deployment.
